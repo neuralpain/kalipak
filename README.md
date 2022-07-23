@@ -1,11 +1,11 @@
 # KALIPAK: Kali Linux Metapackage Installer CLI
 
-This script was created to install Kali Linux metapackages on your Kali disrtribution. Information in this README.md file was taken from [`kali.org`](https://www.kali.org/docs/general-use/metapackages).
+This script was created to install Kali Linux metapackages on your Kali disrtribution. Information in this `README.md` file was taken from [kali.org](https://www.kali.org/docs/general-use/metapackages).
 
-## What is a Metapackage?
+### What is a Metapackage?
 Metapackages are used to install many packages at one time, created as a list of dependencies on other packages. Kali Linux uses these in a few ways. One way is allowing users to decide how many packages out of the total Kali list they would like to install. Need just enough to use Linux? Want enough to conduct Pentests? Perhaps nearly every package available in Kali?
 
-## What to expect 
+## Running the script
 
 Run `kalipak` from the terminal to enter the selection menu for installation.
 
@@ -31,7 +31,7 @@ Usage: kalipak [--help|--version]
 -v, --version   display version and exit
 ```
 
-## Metapackage List [`(kali.org)`](https://www.kali.org/docs/general-use/metapackages)
+## Metapackage List [(kali.org)](https://www.kali.org/docs/general-use/metapackages)
 ### System
 
 - `kali-linux-core` -  Base Kali Linux System – core items that are always included
