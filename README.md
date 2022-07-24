@@ -7,6 +7,12 @@ Metapackages are used to install many packages at one time, created as a list of
 
 ## Running the script
 
+It's always good practice to update the package list before installing or upgrading existing packages because the system cannot know whether the repo has a new version of a package, unless it has an up-to-date copy of the package list.
+
+```
+sudo apt update
+```
+
 Run `kalipak` from the terminal to enter the selection menu for installation.
 
 ```
