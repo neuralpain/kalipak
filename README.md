@@ -10,7 +10,7 @@ Metapackages are used to install many packages at one time, created as a list of
 
 It's always good practice to update the package list before installing or upgrading existing packages because the system cannot know whether the repo has a new version of a package, unless it has an up-to-date copy of the package list.
 
-```
+```bash
 sudo apt update
 ```
 
@@ -34,6 +34,7 @@ Select tools to install:
 
 ```
 Usage: kalipak [--help|--version]
+
 -h, --help      display this help and exit
 -v, --version   display version and exit
 ```
@@ -60,6 +61,7 @@ Usage: kalipak [--help|--version]
 - `kali-desktop-xfce` -  Xfce (WM)
 
 ### Tools
+
 - `kali-tools-gpu` -  Tools which benefit from having access to GPU hardware
 - `kali-tools-hardware` -  Hardware hacking tools
 - `kali-tools-crypto-stego` -  Tools based around Cryptography & Steganography
