@@ -10,7 +10,7 @@ HARDWARE=('kali-tools-gpu' 'kali-tools-hardware' 'kali-tools-crypto-stego' 'kali
 EXPLOIT=('kali-tools-information-gathering' 'kali-tools-vulnerability' 'kali-tools-web' 'kali-tools-database' 'kali-tools-passwords' 'kali-tools-wireless' 'kali-tools-reverse-engineering' 'kali-tools-exploitation' 'kali-tools-social-engineering' 'kali-tools-sniffing-spoofing' 'kali-tools-post-exploitation' 'kali-tools-forensics' 'kali-tools-reporting')
 OTHER=('kali-linux-large' 'kali-linux-everything' 'kali-desktop-live')
 
-DisplayVersion() { echo "kalipak v1.0.0"; exit 1; }
+DisplayVersion() { echo "kalipak v1.1.0"; exit 1; }
 
 DisplayHelp() {
   echo; echo "Usage: kalipak [--help|--version]"
@@ -18,77 +18,38 @@ DisplayHelp() {
   echo "-v, --version   display version and exit"; exit 1
 }
 
-SystemTools() {
+SelectTool() {
+  echo ${PACKAGESET[@]}
   echo; echo "Select ${PACKAGE} tool:"
-  select TOOL in ${SYSTEM[@]}; do
+  select TOOL in ${PACKAGESET[@]}; do
     echo; echo "Installing $TOOL..."
     sudo apt-get install $TOOL
-    printf "\033[1;32m$TOOL installed.\033[0m\n"
-    ToolSelect
+    printf "\n\033[1;32m> $TOOL installed.\033[0m\n"
+    PackageSelect
   done
 }
 
-DesktopTools() {
-  echo; echo "Select ${PACKAGE} tool:"
-  select TOOL in ${DESKTOP[@]}; do
-    echo; echo "Installing $TOOL..."
-    sudo apt-get install $TOOL
-    printf "\033[1;32m$TOOL installed.\033[0m\n"
-    ToolSelect
-  done
-}
-
-HardwareTools() {
-  echo; echo "Select ${PACKAGE} tool:"
-  select TOOL in ${HARDWARE[@]}; do
-    echo; echo "Installing $TOOL..."
-    sudo apt-get install $TOOL
-    printf "\033[1;32m$TOOL installed.\033[0m\n"
-    ToolSelect
-  done
-}
-
-ExploitTools() {
-  echo; echo "Select ${PACKAGE} tool:"
-  select TOOL in ${EXPLOIT[@]}; do
-    echo; echo "Installing $TOOL..."
-    sudo apt-get install $TOOL
-    printf "\033[1;32m$TOOL installed.\033[0m\n"
-    ToolSelect
-  done
-}
-
-OtherTools() {
-  echo; echo "Select ${PACKAGE} tool:"
-  select TOOL in ${OTHER[@]}; do
-    echo; echo "Installing $TOOL..."
-    sudo apt-get install $TOOL
-    printf "\033[1;32m$TOOL installed.\033[0m\n"
-    ToolSelect
-  done
-}
-
-ToolSelect() {
+PackageSelect() {
   printf "\n\033[1;37mKALIPAK:\033[0m Kali Linux Metapackage Installer\n\033[1;33mhttps://www.kali.org/docs/general-use/metapackages\033[0m\n"
   echo "------------------------"
   echo "Select tools to install:"
   select PACKAGE in ${PACKAGES[@]}; do
     case $PACKAGE in
-      System) SystemTools;;
-      Desktop) DesktopTools;;
-      Hardware) HardwareTools;;
-      Exploit) ExploitTools;;
-      Other) OtherTools;;
+      System) PACKAGESET=${SYSTEM[@]};;
+      Desktop) PACKAGESET=${DESKTOP[@]};;
+      Hardware) PACKAGESET=${HARDWARE[@]};;
+      Exploit) PACKAGESET=${EXPLOIT[@]};;
+      Other) PACKAGESET=${OTHER[@]};;
       Exit) exit 1;;
       *) echo "kalipak: Not a package."; exit 1
-    esac
+    esac; SelectTool
   done
 }
 
 case "$1" in
   -h | --help) DisplayHelp;;
   -v | --version) DisplayVersion;;
-  *) if [ $# -eq 0 ]; then ToolSelect
+  *) if [ $# -eq 0 ]; then PackageSelect
     else echo "unknown command \"$1\""
     DisplayHelp
     exit 1; fi;;
