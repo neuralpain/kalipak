@@ -24,7 +24,7 @@ UpdatePackageList() {
   printf "\nkalipak: Updating package list...\n\n"
   sudo apt update
   printf "\nkalipak: Upgrade packages? [Y/n] "; read query
-  if [ $query == "Y" ] || [ $query == "y" ]; then 
+  if [ $query == "Y" ] || [ $query == "y" ]; then
     printf "\nkalipak: Upgrading packages...\n"
     sudo apt upgrade
   else printf "\nkalipak: Action suspended.\n"; fi
@@ -35,14 +35,14 @@ SelectTool() {
   printf "\nSelect ${PACKAGE} package:\n"
   select TOOL in ${PACKAGESET[@]}; do
     for _OOL in ${PACKAGESET[@]}; do
-      if [ ! $_OOL == $TOOL ]; then;
-      else
+      if [ $_OOL == $TOOL ]; then
         printf "\nkalipak: Installing $TOOL...\n\n"
         sudo apt-get install $TOOL
         printf "\n\033[1;32m> $TOOL installed.\033[0m\n"
         SelectPackage
-      fi
-    done
+      fi; done
+    printf "\nkalipak: ${PACKAGE} package component not found.\n"
+    SelectPackage
   done
 }
 
