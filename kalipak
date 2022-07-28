@@ -10,7 +10,7 @@ HARDWARE=('kali-tools-gpu' 'kali-tools-hardware' 'kali-tools-crypto-stego' 'kali
 EXPLOIT=('kali-tools-information-gathering' 'kali-tools-vulnerability' 'kali-tools-web' 'kali-tools-database' 'kali-tools-passwords' 'kali-tools-wireless' 'kali-tools-reverse-engineering' 'kali-tools-exploitation' 'kali-tools-social-engineering' 'kali-tools-sniffing-spoofing' 'kali-tools-post-exploitation' 'kali-tools-forensics' 'kali-tools-reporting')
 OTHER=('kali-linux-large' 'kali-linux-everything' 'kali-desktop-live')
 
-DisplayVersion() { echo "kalipak v1.2.0"; exit 1; }
+DisplayVersion() { echo "kalipak v1.2.1"; exit 1; }
 
 DisplayHelp() { echo;
   echo "Usage: kalipak [--upgrade-pkg] [--help] [--version]"; echo;
@@ -34,10 +34,15 @@ UpdatePackageList() {
 SelectTool() {
   printf "\nSelect ${PACKAGE} package:\n"
   select TOOL in ${PACKAGESET[@]}; do
-    printf "\nkalipak: Installing $TOOL...\n\n"
-    sudo apt-get install $TOOL
-    printf "\n\033[1;32m> $TOOL installed.\033[0m\n"
-    SelectPackage
+    for _OOL in ${PACKAGESET[@]}; do
+      if [ ! $_OOL == $TOOL ]; then;
+      else
+        printf "\nkalipak: Installing $TOOL...\n\n"
+        sudo apt-get install $TOOL
+        printf "\n\033[1;32m> $TOOL installed.\033[0m\n"
+        SelectPackage
+      fi
+    done
   done
 }
 
