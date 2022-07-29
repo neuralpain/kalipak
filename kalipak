@@ -47,9 +47,8 @@ SelectTool() {
         printf "\nkalipak: Installing $TOOL...\n\n"
         sudo apt-get install $TOOL
         printf "\n\033[1;32m> $TOOL was installed.\033[0m\n"
-        SelectPackage; fi; done
-    printf "\nkalipak: ${PACKAGE} package component not found.\n"
-    SelectPackage
+        SelectPackage; fi
+    done
   done
 }
 
