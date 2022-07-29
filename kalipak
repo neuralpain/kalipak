@@ -10,14 +10,17 @@ HARDWARE=('kali-tools-gpu' 'kali-tools-hardware' 'kali-tools-crypto-stego' 'kali
 EXPLOIT=('kali-tools-information-gathering' 'kali-tools-vulnerability' 'kali-tools-web' 'kali-tools-database' 'kali-tools-passwords' 'kali-tools-wireless' 'kali-tools-reverse-engineering' 'kali-tools-exploitation' 'kali-tools-social-engineering' 'kali-tools-sniffing-spoofing' 'kali-tools-post-exploitation' 'kali-tools-forensics' 'kali-tools-reporting')
 OTHER=('kali-linux-large' 'kali-linux-everything' 'kali-desktop-live')
 
-DisplayVersion() { echo "kalipak v1.2.1"; exit 1; }
+DisplayVersion() { echo "kalipak v1.2.1" && exit 1; }
 
-DisplayHelp() { echo;
-  echo "Usage: kalipak [--upgrade-pkg] [--help] [--version]"; echo;
+DisplayHelp() {
+  echo
+  echo "Usage: kalipak [--upgrade-pkg] [--help] [--version]"
+  echo
   echo "Options:"
-  echo "  -i, --upgrade-pkg  update package list and upgrade"
-  echo "  -h, --help         display this help and exit"
-  echo "  -v, --version      display version and exit"; exit 1
+  echo "  -i, --upgrade-pkg    update package list and upgrade"
+  echo "  -h, --help           display this help and exit"
+  echo "  -v, --version        display version and exit"
+  exit 1
 }
 
 UpdatePackageList() {
@@ -25,22 +28,26 @@ UpdatePackageList() {
   sudo apt update
   printf "\nkalipak: Upgrade packages? [Y/n] "; read query
   if [ $query == "Y" ] || [ $query == "y" ]; then
-    printf "\nkalipak: Upgrading packages...\n"
+    printf "\nkalipak: Upgrading packages...\n\n"
     sudo apt upgrade
   else printf "\nkalipak: Action suspended.\n"; fi
   SelectPackage
 }
 
 SelectTool() {
-  printf "\nSelect ${PACKAGE} package:\n"
+  printf "\n\033[1;37mKALIPAK:\033[0m Kali Linux Metapackage Installer\n\033[1;33mhttps://www.kali.org/docs/general-use/metapackages\033[0m\n"
+  echo "-----------------------"
+  printf "Select ${PACKAGE} package:\n"
   select TOOL in ${PACKAGESET[@]}; do
+    if [ -z $TOOL ]; then 
+      printf "\n\033[1;31mkalipak: Not a ${PACKAGE} package.\033[0m\n"
+      printf "\nkalipak: Exiting...\n" && exit 1; fi
     for _OOL in ${PACKAGESET[@]}; do
       if [ $_OOL == $TOOL ]; then
         printf "\nkalipak: Installing $TOOL...\n\n"
         sudo apt-get install $TOOL
-        printf "\n\033[1;32m> $TOOL installed.\033[0m\n"
-        SelectPackage
-      fi; done
+        printf "\n\033[1;32m> $TOOL was installed.\033[0m\n"
+        SelectPackage; fi; done
     printf "\nkalipak: ${PACKAGE} package component not found.\n"
     SelectPackage
   done
@@ -48,8 +55,8 @@ SelectTool() {
 
 SelectPackage() {
   printf "\n\033[1;37mKALIPAK:\033[0m Kali Linux Metapackage Installer\n\033[1;33mhttps://www.kali.org/docs/general-use/metapackages\033[0m\n"
-  echo "--------------------------"
-  echo "Select package to install:"
+  echo "-------------------------------"
+  echo "Select package type to install:"
   select PACKAGE in ${PACKAGES[@]}; do
     case $PACKAGE in
       System) PACKAGESET=${SYSTEM[@]};;
@@ -58,9 +65,10 @@ SelectPackage() {
       Exploit) PACKAGESET=${EXPLOIT[@]};;
       Other) PACKAGESET=${OTHER[@]};;
       Update) UpdatePackageList;;
-      Exit) exit 1;;
-      *) printf "\nkalipak: Not a package.\n"; exit 1
-    esac; SelectTool
+      Exit) printf "\nkalipak: Exiting...\n" && exit 1;;
+      *) printf "\n\033[1;31mkalipak: Not a package.\033[0m\n"
+      printf "\nkalipak: Exiting...\n" && exit 1
+    esac; clear -x; SelectTool
   done
 }
 
@@ -69,7 +77,7 @@ case "$1" in
   -v | --version) DisplayVersion;;
   -i | --upgrade-pkg) UpdatePackageList;;
   *) if [ $# -eq 0 ]; then SelectPackage
-    else echo "unknown command \"$1\""
-      DisplayHelp; exit 1
+    else echo "kalipak: unknown command \"$1\""
+      DisplayHelp && exit 1
     fi;;
 esac
