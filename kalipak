@@ -3,23 +3,23 @@
 # KALIPAK: Kali Linux Metapackage Installer CLI
 # Copyright (c) 2022 neuralpain <https://github.com/neuralpain>
 
-PACKAGES=('System' 'Desktop' 'Hardware' 'Exploit' 'Others' 'Update' 'Exit')
-SYSTEM=('kali-linux-core' 'kali-linux-headless' 'kali-linux-default' 'kali-linux-arm' 'kali-linux-nethunter')
-DESKTOP=('kali-desktop-core' 'kali-desktop-e17' 'kali-desktop-gnome' 'kali-desktop-i3' 'kali-desktop-kde' 'kali-desktop-lxde' 'kali-desktop-mate' 'kali-desktop-xfce')
-HARDWARE=('kali-tools-gpu' 'kali-tools-hardware' 'kali-tools-crypto-stego' 'kali-tools-fuzzing' 'kali-tools-802-11' 'kali-tools-bluetooth' 'kali-tools-rfid' 'kali-tools-sdr' 'kali-tools-voip' 'kali-tools-windows-resources' 'kali-linux-labs')
-EXPLOIT=('kali-tools-information-gathering' 'kali-tools-vulnerability' 'kali-tools-web' 'kali-tools-database' 'kali-tools-passwords' 'kali-tools-wireless' 'kali-tools-reverse-engineering' 'kali-tools-exploitation' 'kali-tools-social-engineering' 'kali-tools-sniffing-spoofing' 'kali-tools-post-exploitation' 'kali-tools-forensics' 'kali-tools-reporting')
-OTHER=('kali-linux-large' 'kali-linux-everything' 'kali-desktop-live')
+PACKAGES=('System' 'Desktop' 'Hardware' 'Exploit' 'Extra' 'Update' 'Exit')
+SYSTEM=('<--back' 'kali-linux-core' 'kali-linux-headless' 'kali-linux-default' 'kali-linux-arm' 'kali-linux-nethunter')
+DESKTOP=('<--back' 'kali-desktop-core' 'kali-desktop-e17' 'kali-desktop-gnome' 'kali-desktop-i3' 'kali-desktop-kde' 'kali-desktop-lxde' 'kali-desktop-mate' 'kali-desktop-xfce')
+HARDWARE=('<--back' 'kali-tools-gpu' 'kali-tools-hardware' 'kali-tools-crypto-stego' 'kali-tools-fuzzing' 'kali-tools-802-11' 'kali-tools-bluetooth' 'kali-tools-rfid' 'kali-tools-sdr' 'kali-tools-voip' 'kali-tools-windows-resources' 'kali-linux-labs')
+EXPLOIT=('<--back' 'kali-tools-information-gathering' 'kali-tools-vulnerability' 'kali-tools-web' 'kali-tools-database' 'kali-tools-passwords' 'kali-tools-wireless' 'kali-tools-reverse-engineering' 'kali-tools-exploitation' 'kali-tools-social-engineering' 'kali-tools-sniffing-spoofing' 'kali-tools-post-exploitation' 'kali-tools-forensics' 'kali-tools-reporting')
+EXTRA=('<--back' 'kali-linux-large' 'kali-linux-everything' 'kali-desktop-live')
 
 DisplayVersion() { echo "kalipak v1.2.1" && exit 1; }
 
 DisplayHelp() {
   echo
-  echo "Usage: kalipak [--upgrade-pkg] [--help] [--version]"
+  echo "Usage: kalipak [--update-pkg] [--help] [--version]"
   echo
   echo "Options:"
-  echo "  -i, --upgrade-pkg    update package list and upgrade"
-  echo "  -h, --help           display this help and exit"
-  echo "  -v, --version        display version and exit"
+  echo "  -i, --update-pkg    update package list and upgrade"
+  echo "  -h, --help          display this help and exit"
+  echo "  -v, --version       display version and exit"
   exit 1
 }
 
@@ -30,7 +30,7 @@ UpdatePackageList() {
   if [ $query == "Y" ] || [ $query == "y" ]; then
     printf "\nkalipak: Upgrading packages...\n\n"
     sudo apt upgrade
-  else printf "\nkalipak: Action suspended.\n"; fi
+  else printf "\nkalipak: Upgrade suspended.\n"; fi
   SelectPackage
 }
 
@@ -40,13 +40,15 @@ SelectTool() {
   printf "Select ${PACKAGE} package:\n"
   select TOOL in ${PACKAGESET[@]}; do
     if [ -z $TOOL ]; then 
-      printf "\n\033[1;31mkalipak: Not a ${PACKAGE} package.\033[0m\n"
-      printf "\nkalipak: Exiting...\n" && exit 1; fi
+      printf "\n\033[1;31mkalipak: Not a \"${PACKAGE}\" package.\033[0m\n"
+      printf "\nkalipak: Exiting...\n" && exit 1
+    elif [ $TOOL == "<--back" ]; then
+      clear -x && SelectPackage; fi
     for _OOL in ${PACKAGESET[@]}; do
       if [ $_OOL == $TOOL ]; then
         printf "\nkalipak: Installing $TOOL...\n\n"
         sudo apt-get install $TOOL
-        printf "\n\033[1;32m> $TOOL was installed.\033[0m\n"
+        printf "\n\033[1;32m> $TOOL installation completed.\033[0m\n"
         SelectPackage; fi
     done
   done
@@ -62,19 +64,19 @@ SelectPackage() {
       Desktop) PACKAGESET=${DESKTOP[@]};;
       Hardware) PACKAGESET=${HARDWARE[@]};;
       Exploit) PACKAGESET=${EXPLOIT[@]};;
-      Other) PACKAGESET=${OTHER[@]};;
+      Extra) PACKAGESET=${EXTRA[@]};;
       Update) UpdatePackageList;;
       Exit) printf "\nkalipak: Exiting...\n" && exit 1;;
       *) printf "\n\033[1;31mkalipak: Not a package.\033[0m\n"
       printf "\nkalipak: Exiting...\n" && exit 1
-    esac; clear -x; SelectTool
+    esac; clear -x && SelectTool
   done
 }
 
 case "$1" in
   -h | --help) DisplayHelp;;
   -v | --version) DisplayVersion;;
-  -i | --upgrade-pkg) UpdatePackageList;;
+  -i | --update-pkg) UpdatePackageList;;
   *) if [ $# -eq 0 ]; then SelectPackage
     else echo "kalipak: unknown command \"$1\""
       DisplayHelp && exit 1
