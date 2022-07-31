@@ -3,7 +3,7 @@
 # KALIPAK: Kali Linux Metapackage Installer CLI
 # Copyright (c) 2022 neuralpain <https://github.com/neuralpain>
 
-set -x
+# set -x
 
 PACKAGES=('System' 'Desktop' 'Hardware' 'Exploit' 'Extra' 'Update' 'Exit')
 SYSTEM=('<--back' 'kali-linux-core' 'kali-linux-headless' 'kali-linux-default' 'kali-linux-arm' 'kali-linux-nethunter'); ALLPAK+=${SYSTEM[@]/"<--back"}
@@ -35,10 +35,23 @@ UpdatePackageList() {
   else printf "\nkalipak: Upgrade suspended.\n"; fi
 }
 
+
+
+
+
+
+
+
+
+
+
 InstallOnly() {
   T_pak=${#ARGS[@]}
   T_ins=0
-
+  
+  echo "args#: ${#_RGS[@]}"
+  echo "args: ${_RGS[@]}"
+  
   for _RGS in ${ARGS[@]}; do
     for _PAK in ${ALLPAK[@]}; do
       if [ $_PAK == $_RGS ]; then
@@ -53,6 +66,17 @@ InstallOnly() {
   printf "\n\033[1;32m> Installation completed.\033[0m\n"
   echo "$T_pak package(s), $T_ins installed, $T_skp skipped." && exit 1
 }
+
+
+
+
+
+
+
+
+
+
+
 
 SelectTool() {
   printf "\n\033[1;37mKALIPAK:\033[0m Kali Linux Metapackage Installer\n\033[1;33mhttps://www.kali.org/docs/general-use/metapackages\033[0m\n"
@@ -93,15 +117,54 @@ SelectPackage() {
   done
 }
 
+
+
+
+
+
+
+split() {
+  
+  ARGS+=(${tmp// /asd})
+  echo $ARGS && exit
+}
+
+
+
+
+
+
+
+
 case "$1" in
   -h | --help) DisplayHelp;;
   -v | --version) DisplayVersion;;
   --update-pkg) UpdatePackageList && SelectPackage;;
-  -i) _RGS=$@; ARGS=${_RGS[@]/"-i"}
+  -i) _RGS=$@; ARGS=${_RGS[@]/"-i "}
+    
+
+
+
+
+    ARGS=${ARGS[@]//" "/"' '"}
+    tmp="('"${ARGS[@]}"')"
+    ARGS=$tmp; echo ${ARGS[@]} && exit 1
+    
+
+
+
+
+
+
     if [ -z $2 ]; then UpdatePackageList
     else
+
+
       # UpdatePackageList && 
       InstallOnly; fi;;
+
+
+
   *) if [ $# -eq 0 ]; then SelectPackage
     else echo "kalipak: unknown command \"$1\""
       DisplayHelp && exit 1
