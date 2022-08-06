@@ -1,6 +1,8 @@
 Other packages to include
 https://www.kali.org/blog/kali-linux-metapackages/
 
+Install packages with id, e.g., `kalipak -i 2a`
+
 ---
 
 # KALIPAK: Kali Linux Metapackage Installer CLI
