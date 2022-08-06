@@ -1,3 +1,8 @@
+Other packages to include
+https://www.kali.org/blog/kali-linux-metapackages/
+
+---
+
 # KALIPAK: Kali Linux Metapackage Installer CLI
 
 This script was created to install Kali Linux metapackages on your Kali distribution. Information in this `README.md` file was taken from [kali.org](https://www.kali.org/docs/general-use/metapackages).
@@ -145,3 +150,6 @@ Options:
 ## License
 
 KALIPAK is available under the MIT License. See [LICENSE](./LICENSE) for the full license text.
+
+
+
