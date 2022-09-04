@@ -1,14 +1,51 @@
 # KALIPAK: Kali Linux Metapackage Installer CLI
 
-This script was created to install Kali Linux metapackages on your Kali distribution. Information in this `README.md` file was taken from [kali.org](https://www.kali.org/docs/general-use/metapackages).
+This script was created for ease of installation of Kali Linux metapackages on either your Kali distribution or any other Linux distribution. The conventional way is still an option but I believe that `kalipak` makes this task less tedious. 
 
 ### What is a Metapackage?
 
-Metapackages are used to install many packages at once, created as a list of dependencies on other packages. Kali Linux uses these in a few ways such as allowing users to decide how many packages out of the total Kali list they would like to install.
+Metapackages are used to install many packages at once, created as a list of dependencies on other packages. Kali Linux uses these in a few ways such as allowing users to decide how many packages out of the total Kali list they would like to install. — *excerpt from [kali.org](https://www.kali.org/docs/general-use/metapackages)*
 
 ## Installing `kalipak`
 
-It's recommended that `kalipak` be installed on `PATH` for optimal performance. These instructions will be the same for almost any script you want to install on a system.
+It's recommended that `kalipak` be installed on `PATH` for optimal performance. These instructions will be simmilar for almost any script you want to install on a system.
+
+### Linux
+
+1. The first way to install `kalipak` on Linux
+
+   ```
+   git clone https://github.com/neuralpain/kalipak Downloads/kalipak
+   cd Downloads/kalipak && sudo mv kalipak /bin/
+   rm -r -f Downloads/kalipak
+   ```
+
+2. The second way to install `kalipak` on Linux
+
+   - Open the `.bashrc` file in your home directiory.
+
+      ```
+      gedit /home/your-user-name/.bashrc  # replace gedit with your preferred editor
+      ```
+   - Add `export PATH=$PATH:kalipak-dir` to the last line of the file, where
+      `kalipak-dir` is the directory you want to add.
+   - Save the `.bashrc` file.
+   - Restart your terminal (optional).
+
+If you encounter this `/usr/bin/kalipak: Permission denied` error or similar, make kalipak an executable.
+
+```
+sudo chmod +x /bin/kalipak
+```
+
+### Mac OS X
+
+1. Open the `.bash_profile` file in your home directory (for example,
+   `/Users/your-user-name/.bash_profile`) in a text editor.
+2. Add `export PATH="$PATH:kalipak-dir"` to the last line of the file, where
+   *kalipak-dir* is the directory you want to add.
+3. Save the `.bash_profile` file.
+4. Restart your terminal.
 
 ### Windows
 
@@ -29,50 +66,13 @@ The recommended `PATH` directiory for KALIPAK is `C:\Windows\Scripts` or copy to
 6. Click "OK".
 7. Restart your terminal.
 
-### Mac OS X
-
-1. Open the `.bash_profile` file in your home directory (for example,
-   `/Users/your-user-name/.bash_profile`) in a text editor.
-2. Add `export PATH="$PATH:kalipak-dir"` to the last line of the file, where
-   *kalipak-dir* is the directory you want to add.
-3. Save the `.bash_profile` file.
-4. Restart your terminal.
-
-### Linux
-
-1. Open the `.bashrc` file in your home directory (for example,
-   `/home/your-user-name/.bashrc`) in a text editor.
-2. Add `export PATH=$PATH:kalipak-dir` to the last line of the file, where
-   *kalipak-dir* is the directory you want to add.
-3. Save the `.bashrc` file.
-4. Restart your terminal.
-
 ## How to use
 
 It's always good practice to update the package list before installing or upgrading existing packages because the system cannot know whether the repo has a new version of a package, unless it has an up-to-date copy of the package list.
 
-You can manually update the package list with the following command or by selecting "Update" in the menu.
+You can manually update the package list with `kalipak -i`, afterwhich you will be greeted with the metapackage list for installation. Alternatively, you can select "Update" in the menu list.
 
-```
-kalipak --update-pkg
-```
-
-Run `kalipak` from the terminal to enter the selection menu for installation.
-
-```
-KALIPAK: Kali Linux Metapackage Installer
-https://www.kali.org/docs/general-use/metapackages
---------------------------
-Select package to install:
-1) System
-2) Desktop
-3) Hardware
-4) Exploit
-5) Extra
-6) Update
-7) Exit
-#? 
-```
+If you just want to run it and update later, run `kalipak` from the terminal to enter the selection menu for installation.
 
 ## Usage
 
