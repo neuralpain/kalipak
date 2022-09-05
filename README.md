@@ -16,7 +16,7 @@ It's recommended that `kalipak` be installed on `PATH` for optimal performance. 
 
    ```
    git clone https://github.com/neuralpain/kalipak Downloads/kalipak
-   cd Downloads/kalipak && sudo mv kalipak /bin/
+   sudo mv Downloads/kalipak/kalipak /usr/local/bin/
    rm -r -f Downloads/kalipak
    ```
 
