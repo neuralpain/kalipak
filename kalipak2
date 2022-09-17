@@ -2,6 +2,7 @@
 
 # KALIPAK: Kali Linux Metapackage Installer CLI
 # Copyright (c) 2022 neuralpain <https://github.com/neuralpain>
+# Licensed under MIT <https://github.com/neuralpain/kalipak/LICENSE>
 
 DisplayVersion() { echo "kalipak v2.0.0-alpha" && exit 1; }
 
@@ -145,7 +146,7 @@ UpdatePackageList() {
 
 #--- KALI SELECTION ---#
 SelectTool_Kali() {
-  MenuHeader
+  clear -x && MenuHeader
   printf "Select ${PACKAGE} package:\n"
   select TOOL in ${PACKAGESET_KALI[@]}; do
     if [ -z $TOOL ]; then 
@@ -179,7 +180,7 @@ SelectPackage_Kali() {
       Exit) EndSession && exit 1;;
       *) printf "\n\033[1;31mkalipak: Not a package.\033[0m\n"
       EndSession && exit 1
-    esac; clear -x && SelectTool_Kali
+    esac; SelectTool_Kali
   done
 }
 #--- END KALI SELECTION ---#
@@ -198,7 +199,7 @@ RemoveSources() {
   else printf "\n> Kali sources were not installed by KALIPAK.\n"; fi
 }
 
-SelectPackage_Debian_Installer() {
+RunInstallationForDebian() {
   printf "\nkalipak: Installing packages...\n\n"
   sudo apt install ${PACKAGESET_DEBIAN[@]}
   printf "\n> Installation completed.\n"
@@ -256,7 +257,7 @@ ResolvePackagesForDebian() {
 }
 
 SelectPackage_Debian_KaliSystem() {
-  MenuHeader
+  clear -x && MenuHeader
   echo "Select package type to install:"
   select TOOL in ${KALI_MOD_SYSTEM[@]}; do
     if [ -z $TOOL ]; then 
@@ -278,12 +279,12 @@ SelectPackage_Debian_KaliSystem() {
       esac; done
     # expand and correct packages then install
     ResolvePackagesForDebian
-    SelectPackage_Debian_Installer
+    RunInstallationForDebian
   done
 }
 
 SelectPackage_Debian_KaliTools() {
-  MenuHeader
+  clear -x && MenuHeader
   echo "Select package type to install:"
   select TOOL in ${KALI_MOD_TOOLS[@]}; do
     if [ -z $TOOL ]; then 
@@ -320,7 +321,7 @@ SelectPackage_Debian_KaliTools() {
       esac; done
     # expand and correct packages then install
     ResolvePackagesForDebian
-    SelectPackage_Debian_Installer
+    RunInstallationForDebian
   done
 }
 
@@ -346,6 +347,8 @@ case "$1" in
   -h | --help) DisplayHelp;;
   -v | --version) DisplayVersion;;
   -i | --update-pkg) StartSession && UpdatePackageList;;
+  --debian) DISTRO="Debian"; StartSession && SelectPackage_Debian;; # switch from kali
+  --kali) DISTRO="Kali"; StartSession && SelectPackage_Kali;; # switch from debian/linux
   *) StartSession 
     if [ $# -eq 0 ]; then PickPackageDistro
     else echo "kalipak: unknown command \"$1\""
