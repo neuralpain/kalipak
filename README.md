@@ -16,7 +16,7 @@ It's recommended that `kalipak` be installed on `PATH` for optimal performance. 
 
    ```
    git clone https://github.com/neuralpain/kalipak Downloads/kalipak
-   sudo mv Downloads/kalipak/kalipak /usr/local/bin/
+   sudo mv Downloads/kalipak/kalipak /bin
    rm -r -f Downloads/kalipak
    ```
 
@@ -32,7 +32,7 @@ It's recommended that `kalipak` be installed on `PATH` for optimal performance. 
    - Save the `.bashrc` file.
    - Restart your terminal (optional).
 
-If you encounter this `/usr/bin/kalipak: Permission denied` error or similar, make kalipak an executable.
+If you encounter this `/bin/kalipak: Permission denied` error or similar
 
 ```
 sudo chmod +x /bin/kalipak
@@ -47,7 +47,7 @@ sudo chmod +x /bin/kalipak
 3. Save the `.bash_profile` file.
 4. Restart your terminal.
 
-### Windows
+### WSL
 
 The recommended `PATH` directiory for KALIPAK is `C:\Windows\Scripts` or copy to `C:\Windows`.
 
@@ -84,6 +84,8 @@ Options:
   -h, --help          display this help and exit
   -v, --version       display version and exit
 ```
+
+---
 
 ## Metapackage List [(kali.org)](https://www.kali.org/docs/general-use/metapackages)
 
