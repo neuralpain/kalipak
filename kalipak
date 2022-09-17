@@ -3,14 +3,7 @@
 # KALIPAK: Kali Linux Metapackage Installer CLI
 # Copyright (c) 2022 neuralpain <https://github.com/neuralpain>
 
-PACKAGES=('System' 'Desktop' 'Hardware' 'Exploit' 'Extra' 'Update' 'Exit')
-SYSTEM=('<--back' 'kali-linux-core' 'kali-linux-headless' 'kali-linux-default' 'kali-linux-arm' 'kali-linux-nethunter')
-DESKTOP=('<--back' 'kali-desktop-core' 'kali-desktop-e17' 'kali-desktop-gnome' 'kali-desktop-i3' 'kali-desktop-kde' 'kali-desktop-lxde' 'kali-desktop-mate' 'kali-desktop-xfce')
-HARDWARE=('<--back' 'kali-tools-gpu' 'kali-tools-hardware' 'kali-tools-crypto-stego' 'kali-tools-fuzzing' 'kali-tools-802-11' 'kali-tools-bluetooth' 'kali-tools-rfid' 'kali-tools-sdr' 'kali-tools-voip' 'kali-tools-windows-resources' 'kali-linux-labs')
-EXPLOIT=('<--back' 'kali-tools-information-gathering' 'kali-tools-vulnerability' 'kali-tools-web' 'kali-tools-database' 'kali-tools-passwords' 'kali-tools-wireless' 'kali-tools-reverse-engineering' 'kali-tools-exploitation' 'kali-tools-social-engineering' 'kali-tools-sniffing-spoofing' 'kali-tools-post-exploitation' 'kali-tools-forensics' 'kali-tools-reporting')
-EXTRA=('<--back' 'kali-linux-large' 'kali-linux-everything' 'kali-desktop-live')
-
-DisplayVersion() { echo "kalipak v1.2.1" && exit 1; }
+DisplayVersion() { echo "kalipak v2.0.0-alpha" && exit 1; }
 
 DisplayHelp() {
   echo
@@ -23,6 +16,122 @@ DisplayHelp() {
   exit 1
 }
 
+#--- DSITRO ID ---#
+DISTRO=
+dist_count=0
+DISTRO_LIST=('kali' 'debian' 'ubuntu' 'arch' 'linux')
+
+while [ -z $DISTRO ]; do { # get distro name
+  DISTRO=$(sudo cat /etc/*release | grep -iwom 1 ${DISTRO_LIST[dist_count]})
+  dist_count+=1
+}; done; if [ -z $DISTRO ]; then DISTRO="Linux"; fi # label as linux if unknown
+
+DISTRO=${DISTRO^} # normalize distro name with capital letter
+
+# verify kali sources
+kali_source_list=/etc/apt/sources.list.d/kali-rolling.list
+if [ $DISTRO != "Kali" ]; then # do not check kali distributions
+  if [ -f $kali_source_list ]; then # check if previous run
+    verf=$(sudo cat $kali_source_list | grep -iwom 1 kalipak)
+    if [ -z ${verf} ]; then # verify that source was added; if not, add it
+      printf "# Kali mirrors added with kalipak by $(whoami) @ $(date +"%Y-%m-%d %T")\n" | sudo tee /etc/apt/sources.list.d/kali-rolling.list
+      echo "deb http://http.kali.org/kali kali-rolling main contrib non-free" | sudo tee -a /etc/apt/sources.list.d/kali-rolling.list
+    fi; fi; fi
+#--- END DISTRO ID ---#
+
+
+#--- SESSION DURATION ---#
+StartSession() { 
+  SessionStartTime=$SECONDS; 
+  printf "\n> New session satrted on ${DISTRO}/$(whoami) @ $(date +"%Y-%m-%d %T")\n"
+}
+
+EndSession() {
+  SessionEndTime=$SECONDS
+  if (( $SECONDS > 3600 )) ; then
+    let "hours=SECONDS/3600"
+    let "minutes=(SECONDS%3600)/60"
+    let "seconds=(SECONDS%3600)%60"
+    printf "\n> Session terminated in $hours hour(s), $minutes minute(s) and $seconds second(s)" 
+    printf "\n> Session ended on ${DISTRO}/$(whoami) @ $(date +"%Y-%m-%d %T")\n"
+  elif (( $SECONDS > 60 )) ; then
+    let "minutes=(SECONDS%3600)/60"
+    let "seconds=(SECONDS%3600)%60"
+    printf "\n> Session terminated in $minutes minute(s) and $seconds second(s)"
+    printf "\n> Session ended on ${DISTRO}/$(whoami) @ $(date +"%Y-%m-%d %T")\n"
+  else
+    printf "\n> Session terminated in $SECONDS seconds."
+    printf "\n> Session ended on ${DISTRO}/$(whoami) @ $(date +"%Y-%m-%d %T").\n"
+  fi
+}
+#--- END SESSION DURATON ---#
+
+#--- PACKAGE LISTS ---#
+PACKAGES=('System' 'Desktop' 'Hardware' 'Exploit' 'Other' 'Update' 'Extra' 'Exit')
+DEB_PACKAGES=('KaliSystem' 'KaliTools' 'RemoveSources' 'FixIssues' 'Update' 'Exit')
+
+KALI_MOD_SYSTEM=('<--back' 'KaliARM' 'KaliCore' 'KaliDefault' 'KaliEverything' 'KaliFirmware' 'KaliHeadless' 'KaliLabs' 'KaliLarge' 'KaliNetHunter')
+KALI_MOD_TOOLS=('<--back' 'KaliToolsWIFI' 'KaliToolsBluetooth' 'KaliToolsCryptoStego' 'KaliToolsDatabase' 'KaliToolsExploitation' 'KaliToolsForensics' 'KaliToolsFuzzing' 'KaliToolsGPU' 'KaliToolsHardware' 'KaliToolsInformationGathering' 'KaliToolsPasswords' 'KaliToolsPostExploitation' 'KaliToolsReporting' 'KaliToolsReverseEngineering' 'KaliToolsRFID' 'KaliToolsSDR' 'KaliToolsSniffingSpoofing' 'KaliToolsSocialEngineering' 'KaliToolsTop10' 'KaliToolsVoIP' 'KaliToolsVulnerability' 'KaliToolsWeb' 'KaliToolsWindowsResources' 'KaliToolsWireless')
+
+# tool packages
+KALI_SYSTEM=('<--back' 'kali-linux-core' 'kali-linux-headless' 'kali-linux-default' 'kali-linux-arm' 'kali-linux-nethunter')
+KALI_DESKTOP=('<--back' 'kali-desktop-core' 'kali-desktop-e17' 'kali-desktop-gnome' 'kali-desktop-i3' 'kali-desktop-kde' 'kali-desktop-lxde' 'kali-desktop-mate' 'kali-desktop-xfce')
+KALI_HARDWARE=('<--back' 'kali-tools-gpu' 'kali-tools-hardware' 'kali-tools-crypto-stego' 'kali-tools-fuzzing' 'kali-tools-802-11' 'kali-tools-bluetooth' 'kali-tools-rfid' 'kali-tools-sdr' 'kali-tools-voip' 'kali-tools-windows-resources' 'kali-linux-labs')
+KALI_EXPLOIT=('<--back' 'kali-tools-information-gathering' 'kali-tools-vulnerability' 'kali-tools-web' 'kali-tools-database' 'kali-tools-passwords' 'kali-tools-wireless' 'kali-tools-reverse-engineering' 'kali-tools-exploitation' 'kali-tools-social-engineering' 'kali-tools-sniffing-spoofing' 'kali-tools-post-exploitation' 'kali-tools-forensics' 'kali-tools-reporting')
+KALI_OTHER=('<--back' 'kali-linux-large' 'kali-linux-everything' 'kali-desktop-live')
+
+# kali system
+KaliARM=('abootimg' 'aircrack-ng' 'cewl' 'cgpt' 'crunch' 'dnsrecon' 'ethtool' 'exploitdb' 'fake-hwclock' 'hydra' 'initramfs-tools' 'john' 'kali-linux-core' 'libnfc-bin' 'medusa' 'metasploit-framework' 'mfoc' 'ncrack' 'nmap' 'passing-the-hash' 'proxychains4' 'recon-ng' 'sqlmap' 'tcpdump' 'theharvester' 'tshark' 'u-boot-tools' 'usbutils' 'vboot-kernel-utils' 'vboot-utils' 'windows-binaries' 'winexe' 'wpscan')
+KaliCore=('ftp' 'kali-defaults' 'netcat-traditional' 'openssh-client' 'openssh-server' 'parted' 'sudo' 'tasksel' 'tcpdump' 'tmux' 'vim-tiny' 'zsh' 'zsh-autosuggestions' 'zsh-syntax-highlighting')
+KaliDefault=('autopsy' 'cherrytree' 'cutycapt' 'dirbuster' 'faraday' 'fern-wifi-cracker' 'gparted' 'guymager' 'hydra-gtk' 'kali-linux-headless' 'kali-tools-top10' 'king-phisher' 'legion' 'ophcrack' 'ophcrack-cli' 'rdesktop' 'recordmydesktop' 'sqlitebrowser' 'tightvncserver' 'xtightvncviewer')
+KaliEverything=('airgeddon' 'altdns' 'android-sdk' 'apple-bleee' 'arjun' 'assetfinder' 'b374k' 'berate-ap' 'bettercap-ui' 'bing-ip2hosts' 'bloodhound' 'bruteforce-salted-openssl' 'bruteforce-wallet' 'bruteshark' 'brutespray' 'capstone-tool' 'certgraph' 'changeme' 'chaosreader' 'chisel' 'cloud-enum' 'cloudbrute' 'cmseek' 'cntlm' 'crack' 'crowbar' 'cupid-hostapd' 'cupid-wpasupplicant' 'de4dot' 'defectdojo' 'dirsearch' 'dislocker' 'dnscat2' 'dnsgen' 'dnstwist' 'dnsx' 'dscan' 'dufflebag' 'dumpsterdiver' 'dwarf2json' 'eaphammer' 'email2phonenumber' 'emailharvester' 'evil-ssdp' 'exploitdb-bin-sploits' 'exploitdb-papers' 'faraday-cli' 'feroxbuster' 'finalrecon' 'freeradius' 'gdb-peda' 'getallurls' 'gitleaks' 'godoh' 'golang-github-binject-go-donut' 'goldeneye' 'goofile' 'gospider' 'gtkhash' 'hashrat' 'hb-honeypot' 'hcxtools' 'hostapd-mana' 'hosthunter' 'hostsman' 'htshells' 'httprobe' 'httpx-toolkit' 'hurl' 'ibombshell' 'ident-user-enum' 'inspy' 'instaloader' 'ipv6-toolkit' 'ismtp' 'ivre' 'joplin' 'jsp-file-browser' 'kali-community-wallpapers' 'kali-legacy-wallpapers' 'kali-linux-arm' 'kali-linux-core' 'kali-linux-default' 'kali-linux-headless' 'kali-linux-large' 'kali-tools-802-11' 'kali-tools-bluetooth' 'kali-tools-crypto-stego' 'kali-tools-database' 'kali-tools-exploitation' 'kali-tools-forensics' 'kali-tools-fuzzing' 'kali-tools-gpu' 'kali-tools-hardware' 'kali-tools-information-gathering' 'kali-tools-passwords' 'kali-tools-post-exploitation' 'kali-tools-reporting' 'kali-tools-reverse-engineering' 'kali-tools-rfid' 'kali-tools-sdr' 'kali-tools-sniffing-spoofing' 'kali-tools-social-engineering' 'kali-tools-top10' 'kali-tools-voip' 'kali-tools-vulnerability' 'kali-tools-web' 'kali-tools-windows-resources' 'kali-tools-wireless' 'kerberoast' 'knocker' 'koadic' 'lapsdumper' 'linux-exploit-suggester' 'maltego-teeth' 'maryam' 'massdns' 'merlin-agent' 'merlin-server' 'multiforcer' 'naabu' 'name-that-hash' 'nbtscan-unixwiz' 'nextnet' 'nmapsi4' 'nuclei' 'o-saft' 'odat' 'osrframework' 'owl' 'pacu' 'parsero' 'payloadsallthethings' 'peirates' 'phishery' 'photon' 'phpggc' 'phpsploit' 'pnscan' 'pocsuite3' 'pompem' 'poshc2' 'princeprocessor' 'prism' 'proxify' 'proxmark3' 'pskracker' 'pwncat' 'quark-engine' 'redsnarf' 'rev-proxy-grapher' 'ridenum' 'robotstxt' 'ropper' 'routerkeygenpc' 'routersploit' 'ruby-pedump' 's3scanner' 'sentrypeer' 'shed' 'shellfire' 'sherlock' 'silenttrinity' 'sliver' 'snmpenum' 'snowdrop' 'sparrow-wifi' 'spray' 'sprayingtoolkit' 'spraykatz' 'sslstrip' 'stegcracker' 'subfinder' 'subjack' 'sublist3r' 'teamsploit' 'testssl.sh' 'trufflehog' 'tundeep' 'unhide.rb' 'websploit' 'wgetpaste' 'whatmask' 'wifiphisher' 'wifipumpkin3' 'wig' 'wig-ng' 'witnessme' 'wmi-client' 'wordlistraider' 'wotmate' 'wpa-sycophant' 'zonedb')
+KaliFirmware=('bluez-firmware' 'firmware-amd-graphics' 'firmware-atheros' 'firmware-brcm80211' 'firmware-intel-sound' 'firmware-iwlwifi' 'firmware-libertas' 'firmware-linux' 'firmware-misc-nonfree' 'firmware-realtek' 'firmware-sof-signed' 'firmware-ti-connectivity' 'firmware-zd1211')
+KaliHeadless=('aircrack-ng' 'amass' 'apache2' 'arp-scan' 'arping' 'atftpd' 'axel' 'bind9-dnsutils' 'binwalk' 'bluez' 'bluez-hcidump' 'bulk-extractor' 'bully' 'cadaver' 'cewl' 'chntpw' 'cifs-utils' 'clang' 'commix' 'crackmapexec' 'creddump7' 'crunch' 'cryptcat' 'cryptsetup' 'cryptsetup-initramfs' 'cryptsetup-nuke-password' 'curlftpfs' 'davtest' 'dbd' 'default-mysql-server' 'dirb' 'dmitry' 'dns2tcp' 'dnschef' 'dnsenum' 'dnsrecon' 'dos2unix' 'enum4linux' 'ethtool' 'evil-winrm' 'exe2hexbat' 'exiv2' 'expect' 'exploitdb' 'ffuf' 'fierce' 'fping' 'gdisk' 'git' 'gpp-decrypt' 'hash-identifier' 'hashcat' 'hashcat-utils' 'hashdeep' 'hashid' 'hotpatch' 'hping3' 'hydra' 'i2c-tools' 'ifenslave' 'ike-scan' 'impacket-scripts' 'inetsim' 'iodine' 'iw' 'john' 'kali-linux-core' 'kismet' 'laudanum' 'lbd' 'libimage-exiftool-perl' 'macchanger' 'magicrescue' 'maskprocessor' 'masscan' 'metasploit-framework' 'mimikatz' 'minicom' 'miredo' 'mitmproxy' 'msfpc' 'multimac' 'nasm' 'nbtscan' 'ncrack' 'ncurses-hexedit' 'netdiscover' 'netmask' 'netsed' 'netsniff-ng' 'nfs-common' 'ngrep' 'nikto' 'nmap' 'onesixtyone' 'openvpn' 'p7zip-full' 'passing-the-hash' 'patator' 'pdf-parser' 'pdfid' 'php' 'php-mysql' 'pipal' 'pixiewps' 'plocate' 'powershell' 'powershell-empire' 'powersploit' 'proxychains4' 'proxytunnel' 'ptunnel' 'pwnat' 'python-is-python3' 'python3-impacket' 'python3-pip' 'python3-scapy' 'python3-virtualenv' 'qsslcaudit' 'radare2' 'rake' 'reaver' 'rebind' 'recon-ng' 'redsocks' 'responder' 'rfkill' 'rsmangler' 'sakis3g' 'samba' 'samdump2' 'sbd' 'scalpel' 'screen' 'scrounge-ntfs' 'sendemail' 'set' 'skipfish' 'sleuthkit' 'smbmap' 'snmp' 'snmpcheck' 'snmpd' 'socat' 'spiderfoot' 'spike' 'spooftooph' 'sqlmap' 'ssldump' 'sslh' 'sslscan' 'sslsplit' 'sslyze' 'statsprocessor' 'stunnel4' 'swaks' 'tcpick' 'tcpreplay' 'telnet' 'testdisk' 'tftp' 'thc-ipv6' 'thc-pptp-bruter' 'theharvester' 'traceroute' 'udptunnel' 'unix-privesc-check' 'unar' 'upx-ucl' 'vboot-kernel-utils' 'vboot-utils' 'vim' 'vlan' 'voiphopper' 'vpnc' 'wafw00f' 'wce' 'webshells' 'weevely' 'wfuzz' 'whatweb' 'whois' 'wifite' 'windows-binaries' 'winexe' 'wordlists' 'wpscan')
+KaliLabs=('dvwa' 'juice-shop')
+KaliLarge=('0trace' 'afflib-tools' 'amap' 'apache-users' 'apktool' 'armitage' 'arpwatch' 'asleap' 'backdoor-factory' 'bed' 'beef-xss' 'bluelog' 'blueranger' 'bluesnarfer' 'braa' 'btscanner' 'bytecode-viewer' 'cabextract' 'caldera' 'cgpt' 'chirp' 'chkrootkit' 'cisco-auditing-tool' 'cisco-global-exploiter' 'cisco-ocs' 'cisco-torch' 'cloud-enum' 'cmospwd' 'code-oss' 'copy-router-config' 'cowpatty' 'cymothoa' 'darkstat' 'dbeaver' 'dc3dd' 'dcfldd' 'ddrescue' 'dex2jar' 'dhcpig' 'dnsmap' 'dnstracer' 'dnswalk' 'doona' 'dotdotpwn' 'dradis' 'driftnet' 'dsniff' 'dumpzilla' 'eapmd5pass' 'edb-debugger' 'enumiax' 'ettercap-text-only' 'ewf-tools' 'extundelete' 'fcrackzip' 'fiked' 'foremost' 'fragrouter' 'framework2' 'ftester' 'galleta' 'gdb' 'ghidra' 'gobuster' 'hackrf' 'hamster-sidejack' 'hexinject' 'httrack' 'iaxflood' 'intrace' 'inviteflood' 'irpas' 'jadx' 'javasnoop' 'jboss-autopwn' 'johnny' 'joomscan' 'jsql-injection' 'kali-linux-core' 'kali-linux-default' 'kismet-logtools' 'libfindrtp' 'libfreefare-bin' 'libhivex-bin' 'libnfc-bin' 'lynis' 'maltego' 'mc' 'mdbtools' 'mdk3' 'medusa' 'memdump' 'mercurial' 'mfcuk' 'mfoc' 'mfterm' 'missidentify' 'ncat-w32' 'netwag' 'nipper-ng' 'nishang' 'ohrwurm' 'ollydbg' 'oscanner' 'p0f' 'pack' 'padbuster' 'paros' 'pasco' 'perl-cisco-copyconfig' 'pev' 'photon' 'plecost' 'polenum' 'protos-sip' 'pst-utils' 'rainbowcrack' 'rcracki-mt' 'recoverjpeg' 'redfang' 'reglookup' 'regripper' 'rifiuti' 'rifiuti2' 'rtpbreak' 'rtpflood' 'rtpinsertsound' 'rtpmixsound' 'safecopy' 'sctpscan' 'seclists' 'sfuzz' 'sidguesser' 'siege' 'siparmyknife' 'sipcrack' 'sipp' 'sipvicious' 'smali' 'smtp-user-enum' 'sniffjoke' 'spectools' 'sqldict' 'sqlninja' 'sqlsus' 'sslsniff' 'starkiller' 'subversion' 'sucrack' 't50' 'tcpflow' 'termineter' 'tftpd32' 'thc-ssl-dos' 'tlssled' 'tnscmd10g' 'truecrack' 'twofi' 'unicornscan' 'uniscan' 'urlcrazy' 'vim-gtk3' 'vinetto' 'wapiti' 'webacoo' 'webscarab' 'wifi-honey' 'xprobe' 'xspy' 'xsser' 'yersinia' 'zaproxy' 'zerofree' 'zim')
+KaliNetHunter=('aircrack-ng' 'apache2' 'armitage' 'autoconf' 'autossh' 'backdoor-factory' 'beef-xss' 'bettercap' 'bind9-dnsutils' 'binutils-arm-none-eabi' 'burpsuite' 'dbd' 'device-pharmer' 'dnsmasq' 'dsniff' 'ettercap-text-only' 'exe2hexbat' 'exploitdb' 'florence' 'g++' 'gcc' 'gcc-arm-none-eabi' 'gpsd' 'hostapd' 'isc-dhcp-server' 'iw' 'kali-defaults' 'kali-desktop-xfce' 'kali-linux-core' 'kismet' 'kismet-plugins' 'libapache2-mod-php' 'libbz2-dev' 'libffi-dev' 'libncurses5-dev' 'libnewlib-arm-none-eabi' 'libreadline6-dev' 'libssl-dev' 'libtool' 'libxml2-dev' 'macchanger' 'make' 'mdk3' 'metasploit-framework' 'mfoc' 'mitmproxy' 'msfpc' 'nethunter-utils' 'nishang' 'nmap' 'openssh-server' 'openvpn' 'p0f' 'php' 'pixiewps' 'postgresql' 'ptunnel' 'python3-dnspython' 'python3-lxml' 'python3-m2crypto' 'python3-mako' 'python3-netaddr' 'python3-pcapy' 'python3-pip' 'python3-setuptools' 'python3-twisted' 'recon-ng' 'rfkill' 'socat' 'sox' 'sqlmap' 'sslsplit' 'tcpdump' 'tcptrace' 'tigervnc-standalone-server' 'tinyproxy' 'tshark' 'wifite' 'wipe' 'wireshark' 'wpasupplicant' 'zip' 'zlib1g-dev')
+
+# kali tools
+KaliToolsWIFI=('aircrack-ng' 'airgeddon' 'asleap' 'bully' 'cowpatty' 'eapmd5pass' 'fern-wifi-cracker' 'freeradius-wpe' 'hashcat' 'hostapd-wpe' 'iw' 'kismet' 'macchanger' 'mdk3' 'mdk4' 'pixiewps' 'reaver' 'wifi-honey' 'wifite')
+KaliToolsBluetooth=('bluelog' 'blueranger' 'bluesnarfer' 'bluez' 'bluez-hcidump' 'btscanner' 'crackle' 'redfang' 'spooftooph' 'ubertooth')
+KaliToolsCryptoStego=('aesfix' 'aeskeyfind' 'ccrypt' 'outguess' 'steghide' 'stegsnow')
+KaliToolsDatabase=('jsql-injection' 'mdbtools' 'oscanner' 'sidguesser' 'sqldict' 'sqlitebrowser' 'sqlmap' 'sqlninja' 'sqlsus' 'tnscmd10g')
+KaliToolsExploitation=('armitage' 'beef-xss' 'exploitdb' 'metasploit-framework' 'msfpc' 'set' 'shellnoob' 'sqlmap' 'termineter')
+KaliToolsForensics=('afflib-tools' 'apktool' 'autopsy' 'binwalk' 'bulk-extractor' 'bytecode-viewer' 'cabextract' 'chkrootkit' 'creddump7' 'dc3dd' 'dcfldd' 'ddrescue' 'dumpzilla' 'edb-debugger' 'ewf-tools' 'exifprobe' 'exiv2' 'ext3grep' 'ext4magic' 'extundelete' 'fcrackzip' 'firmware-mod-kit' 'foremost' 'forensic-artifacts' 'forensics-colorize' 'galleta' 'gdb' 'gpart' 'gparted' 'grokevt' 'guymager' 'hashdeep' 'inetsim' 'jadx' 'javasnoop' 'libhivex-bin' 'lime-forensics' 'lvm2' 'lynis' 'mac-robber' 'magicrescue' 'md5deep' 'mdbtools' 'memdump' 'metacam' 'missidentify' 'myrescue' 'nasm' 'nasty' 'ollydbg' 'p7zip-full' 'parted' 'pasco' 'pdf-parser' 'pdfid' 'pev' 'plaso' 'polenum' 'pst-utils' 'python3-capstone' 'python3-dfdatetime' 'python3-dfvfs' 'python3-dfwinreg' 'python3-distorm3' 'radare2' 'radare2-cutter' 'recoverdm' 'recoverjpeg' 'reglookup' 'regripper' 'rephrase' 'rifiuti' 'rifiuti2' 'rkhunter' 'rsakeyfind' 'safecopy' 'samdump2' 'scalpel' 'scrounge-ntfs' 'sleuthkit' 'smali' 'sqlitebrowser' 'ssdeep' 'tcpdump' 'tcpflow' 'tcpick' 'tcpreplay' 'truecrack' 'undbx' 'unhide' 'unar' 'upx-ucl' 'vinetto' 'wce' 'winregfs' 'wireshark' 'xmount' 'xplico' 'yara')
+KaliToolsFuzzing=('afl++' 'sfuzz' 'spike' 'wfuzz')
+KaliToolsGPU=('oclgausscrack' 'truecrack')
+KaliToolsHardware=('binwalk' 'cutecom' 'flashrom' 'minicom' 'openocd' 'qemu-system-x86' 'qemu-user' 'radare2' 'radare2-cutter')
+KaliToolsInformationGathering=('0trace' 'arping' 'braa' 'dmitry' 'dnsenum' 'dnsmap' 'dnsrecon' 'dnstracer' 'dnswalk' 'enum4linux' 'fierce' 'firewalk' 'fping' 'fragrouter' 'ftester' 'hping3' 'ike-scan' 'intrace' 'irpas' 'lbd' 'legion' 'maltego' 'masscan' 'metagoofil' 'nbtscan' 'ncat' 'netdiscover' 'netmask' 'nmap' 'onesixtyone' 'p0f' 'qsslcaudit' 'recon-ng' 'smbmap' 'smtp-user-enum' 'snmpcheck' 'ssldump' 'sslh' 'sslscan' 'sslyze' 'swaks' 'thc-ipv6' 'theharvester' 'tlssled' 'twofi' 'unicornscan' 'urlcrazy' 'wafw00f' 'xprobe')
+KaliToolsPasswords=('cewl' 'chntpw' 'cisco-auditing-tool' 'cmospwd' 'crackle' 'creddump7' 'crunch' 'fcrackzip' 'freerdp2-x11' 'gpp-decrypt' 'hash-identifier' 'hashcat' 'hashcat-utils' 'hashid' 'hydra' 'hydra-gtk' 'john' 'johnny' 'kali-tools-gpu' 'maskprocessor' 'medusa' 'mimikatz' 'ncrack' 'onesixtyone' 'ophcrack' 'ophcrack-cli' 'pack' 'passing-the-hash' 'patator' 'pdfcrack' 'pipal' 'polenum' 'rainbowcrack' 'rarcrack' 'rcracki-mt' 'rsmangler' 'samdump2' 'seclists' 'sipcrack' 'sipvicious' 'smbmap' 'sqldict' 'statsprocessor' 'sucrack' 'thc-pptp-bruter' 'truecrack' 'twofi' 'wordlists')
+KaliToolsPostExploitation=('backdoor-factory' 'cymothoa' 'dbd' 'dns2tcp' 'exe2hexbat' 'iodine' 'laudanum' 'mimikatz' 'miredo' 'nishang' 'powersploit' 'proxychains4' 'proxytunnel' 'ptunnel' 'pwnat' 'sbd' 'shellter' 'sslh' 'stunnel4' 'udptunnel' 'veil' 'webacoo' 'weevely')
+KaliToolsReporting=('cutycapt' 'dradis' 'eyewitness' 'faraday' 'maltego' 'metagoofil' 'pipal' 'recordmydesktop')
+KaliToolsReverseEngineering=('apktool' 'bytecode-viewer' 'clang' 'dex2jar' 'edb-debugger' 'jadx' 'javasnoop' 'jd-gui' 'metasploit-framework' 'ollydbg' 'radare2' 'radare2-cutter')
+KaliToolsRFID=('gnuradio' 'libfreefare-bin' 'libnfc-bin' 'mfcuk' 'mfoc' 'mfterm' 'proxmark3' 'rfdump')
+KaliToolsSDR=('chirp' 'gnuradio' 'gqrx-sdr' 'gr-air-modes' 'gr-iqbal' 'gr-osmosdr' 'hackrf' 'inspectrum' 'kalibrate-rtl' 'multimon-ng' 'rtlsdr-scanner' 'uhd-host' 'uhd-images')
+KaliToolsSniffingSpoofing=('bettercap' 'darkstat' 'dnschef' 'driftnet' 'dsniff' 'ettercap-text-only' 'fiked' 'hamster-sidejack' 'hexinject' 'isr-evilgrade' 'macchanger' 'mitmproxy' 'netsniff-ng' 'rebind' 'responder' 'sniffjoke' 'sslsniff' 'sslsplit' 'tcpflow' 'tcpreplay' 'wifi-honey' 'wireshark' 'yersinia')
+KaliToolsSocialEngineering=('backdoor-factory' 'beef-xss' 'maltego' 'msfpc' 'set' 'veil')
+KaliToolsTop10=('aircrack-ng' 'burpsuite' 'crackmapexec' 'hydra' 'john' 'metasploit-framework' 'nmap' 'responder' 'sqlmap' 'wireshark')
+KaliToolsVoIP=('enumiax' 'iaxflood' 'inviteflood' 'libfindrtp' 'nmap' 'ohrwurm' 'protos-sip' 'rtpbreak' 'rtpflood' 'rtpinsertsound' 'rtpmixsound' 'sctpscan' 'siparmyknife' 'sipcrack' 'sipp' 'sipvicious' 'voiphopper' 'wireshark')
+KaliToolsVulnerability=('afl++' 'bed' 'cisco-auditing-tool' 'cisco-global-exploiter' 'cisco-ocs' 'cisco-torch' 'copy-router-config' 'dhcpig' 'enumiax' 'gvm' 'iaxflood' 'inviteflood' 'legion' 'lynis' 'nikto' 'nmap' 'ohrwurm' 'peass' 'protos-sip' 'rtpbreak' 'rtpflood' 'rtpinsertsound' 'rtpmixsound' 'sctpscan' 'sfuzz' 'siege' 'siparmyknife' 'sipp' 'sipsak' 'sipvicious' 'slowhttptest' 'spike' 't50' 'thc-ssl-dos' 'unix-privesc-check' 'voiphopper' 'yersinia')
+KaliToolsWeb=('apache-users' 'apache2' 'beef-xss' 'burpsuite' 'cadaver' 'commix' 'cutycapt' 'davtest' 'default-mysql-server' 'dirb' 'dirbuster' 'dotdotpwn' 'eyewitness' 'ftester' 'hakrawler' 'hamster-sidejack' 'heartleech' 'httprint' 'httrack' 'hydra' 'hydra-gtk' 'jboss-autopwn' 'joomscan' 'jsql-injection' 'laudanum' 'lbd' 'maltego' 'medusa' 'mitmproxy' 'ncrack' 'nikto' 'nishang' 'nmap' 'oscanner' 'owasp-mantra-ff' 'padbuster' 'paros' 'patator' 'php' 'php-mysql' 'plecost' 'proxychains4' 'proxytunnel' 'qsslcaudit' 'redsocks' 'sidguesser' 'siege' 'skipfish' 'slowhttptest' 'sqldict' 'sqlitebrowser' 'sqlmap' 'sqlninja' 'sqlsus' 'ssldump' 'sslh' 'sslscan' 'sslsniff' 'sslsplit' 'sslyze' 'stunnel4' 'thc-ssl-dos' 'tlssled' 'tnscmd10g' 'uniscan' 'wafw00f' 'wapiti' 'watobo' 'webacoo' 'webscarab' 'webshells' 'weevely' 'wfuzz' 'whatweb' 'wireshark' 'wpscan' 'xsser' 'zaproxy')
+KaliToolsWindowsResources=('dbd' 'dnschef' 'heartleech' 'hyperion' 'mimikatz' 'ncat-w32' 'ollydbg' 'powercat' 'regripper' 'sbd' 'secure-socket-funneling-windows-binaries' 'shellter' 'tftpd32' 'wce' 'windows-binaries' 'windows-privesc-check')
+KaliToolsWireless=('kali-tools-802-11' 'kali-tools-bluetooth' 'kali-tools-rfid' 'kali-tools-sdr' 'rfcat' 'rfkill' 'sakis3g' 'spectools' 'wireshark')
+#--- END PACKAGE LISTS ---#
+
+MenuHeader() {
+  printf "\n\033[1;37mKALIPAK: Kali Linux Metapackage Installer\033[0m"
+  printf "\n\033[1;33mhttps://www.kali.org/docs/general-use/metapackages\033[0m"
+  printf "\n\033[1;33mhttps://www.kali.org/tools/kali-meta/\033[0m\n"
+  echo "------------------------"
+}
+
+PickPackageDistro() {
+  if [ ${DISTRO} == "Kali" ];
+    then SelectPackage_Kali
+    else SelectPackage_Debian
+  fi
+}
+
 UpdatePackageList() {
   printf "\nkalipak: Updating package list...\n\n"
   sudo apt update
@@ -31,53 +140,214 @@ UpdatePackageList() {
     printf "\nkalipak: Upgrading packages...\n\n"
     sudo apt upgrade
   else printf "\nkalipak: Upgrade suspended.\n"; fi
-  SelectPackage
+  PickPackageDistro
 }
 
-SelectTool() {
-  printf "\n\033[1;37mKALIPAK:\033[0m Kali Linux Metapackage Installer\n\033[1;33mhttps://www.kali.org/docs/general-use/metapackages\033[0m\n"
-  echo "-----------------------"
+#--- KALI SELECTION ---#
+SelectTool_Kali() {
+  MenuHeader
   printf "Select ${PACKAGE} package:\n"
-  select TOOL in ${PACKAGESET[@]}; do
+  select TOOL in ${PACKAGESET_KALI[@]}; do
     if [ -z $TOOL ]; then 
       printf "\n\033[1;31mkalipak: Not a \"${PACKAGE}\" package.\033[0m\n"
-      printf "\nkalipak: Exiting...\n" && exit 1
+      EndSession && exit 1
     elif [ $TOOL == "<--back" ]; then
-      clear -x && SelectPackage; fi
-    for _OOL in ${PACKAGESET[@]}; do
+      clear -x && SelectPackage_Kali; fi
+    for _OOL in ${PACKAGESET_KALI[@]}; do
       if [ $_OOL == $TOOL ]; then
         printf "\nkalipak: Installing $TOOL...\n\n"
-        sudo apt-get install $TOOL
-        printf "\n\033[1;32m> $TOOL installation completed.\033[0m\n"
-        SelectPackage; fi
+        sudo apt install $TOOL
+        printf "\n> $TOOL installation completed.\n"
+        PickPackageDistro; fi
     done
   done
 }
 
-SelectPackage() {
-  printf "\n\033[1;37mKALIPAK:\033[0m Kali Linux Metapackage Installer\n\033[1;33mhttps://www.kali.org/docs/general-use/metapackages\033[0m\n"
-  echo "-------------------------------"
+SelectPackage_Kali() {
+  MenuHeader
   echo "Select package type to install:"
   select PACKAGE in ${PACKAGES[@]}; do
     case $PACKAGE in
-      System) PACKAGESET=${SYSTEM[@]};;
-      Desktop) PACKAGESET=${DESKTOP[@]};;
-      Hardware) PACKAGESET=${HARDWARE[@]};;
-      Exploit) PACKAGESET=${EXPLOIT[@]};;
-      Extra) PACKAGESET=${EXTRA[@]};;
+      System) PACKAGESET_KALI=${KALI_SYSTEM[@]};;
+      Desktop) PACKAGESET_KALI=${KALI_DESKTOP[@]};;
+      Hardware) PACKAGESET_KALI=${KALI_HARDWARE[@]};;
+      Exploit) PACKAGESET_KALI=${KALI_EXPLOIT[@]};;
+      Other) PACKAGESET_KALI=${KALI_OTHER[@]};;
       Update) UpdatePackageList;;
-      Exit) printf "\nkalipak: Exiting...\n" && exit 1;;
+      Extra) EndSession; DISTRO="Debian"
+        StartSession && PickPackageDistro;;
+      Exit) EndSession && exit 1;;
       *) printf "\n\033[1;31mkalipak: Not a package.\033[0m\n"
-      printf "\nkalipak: Exiting...\n" && exit 1
-    esac; clear -x && SelectTool
+      EndSession && exit 1
+    esac; clear -x && SelectTool_Kali
   done
 }
+#--- END KALI SELECTION ---#
+
+#--- LINUX/DEBIAN SELECTION ---#
+FixInstallIssues() { 
+  printf "\n> Attempting to fix issues...\n\n"
+  sudo apt autoremove 2>&1
+  sudo apt --fix-broken install 2>&1
+}
+
+RemoveSources() { 
+  if [ -f $kali_source_list ]; then 
+    sudo rm -rf $kali_source_list
+    printf "\n> Kali sources removed from APT.\n"
+  else printf "\n> Kali sources were not installed by KALIPAK.\n"; fi
+}
+
+SelectPackage_Debian_Installer() {
+  printf "\nkalipak: Installing packages...\n\n"
+  sudo apt install ${PACKAGESET_DEBIAN[@]}
+  printf "\n> Installation completed.\n"
+  PickPackageDistro
+}
+
+ResolvePackagesForDebian() {
+  UNPACK=
+  UNPACK_LIST=('kali-linux-core' 'kali-linux-headless' 'kali-tools-top10' 'kali-community-wallpapers' 'kali-legacy-wallpapers' 'kali-linux-arm' 'kali-linux-core' 'kali-linux-default' 'kali-linux-headless' 'kali-linux-large' 'kali-tools-802-11' 'kali-tools-bluetooth' 'kali-tools-crypto-stego' 'kali-tools-database' 'kali-tools-exploitation' 'kali-tools-forensics' 'kali-tools-fuzzing' 'kali-tools-gpu' 'kali-tools-hardware' 'kali-tools-information-gathering' 'kali-tools-passwords' 'kali-tools-post-exploitation' 'kali-tools-reporting' 'kali-tools-reverse-engineering' 'kali-tools-rfid' 'kali-tools-sdr' 'kali-tools-sniffing-spoofing' 'kali-tools-social-engineering' 'kali-tools-top10' 'kali-tools-voip' 'kali-tools-vulnerability' 'kali-tools-web' 'kali-tools-windows-resources' 'kali-tools-wireless' 'kali-linux-core' 'kali-linux-core' 'kali-linux-default' 'kali-defaults' 'kali-desktop-xfce' 'kali-linux-core' 'kali-tools-gpu' 'kali-tools-802-11' 'kali-tools-bluetooth' 'kali-tools-rfid' 'kali-tools-sdr')
+  
+  for _PACKAGE in ${PACKAGESET_DEBIAN[@]}; do
+    for PACKAGE in ${UNPACK_LIST[@]}; do
+      if [ $_PACKAGE == $PACKAGE ]; then
+        PACKAGESET_DEBIAN=${PACKAGESET_DEBIAN[@]/$PACKAGE} # remove the package
+        # UNPACK+=$PACKAGE; 
+      fi; done; done
+
+  for PACKAGE in ${PACKAGESET_DEBIAN[@]}; do
+    case $PACKAGE in
+      kali-community-wallpapers) ;; # no support
+      kali-defaults) ;; # no support
+      kali-desktop-xfce) ;; # no support
+      kali-legacy-wallpapers) ;; # no support
+      kali-linux-arm) PACKAGESET_DEBIAN+=${KaliARM[@]};;
+      kali-linux-core) PACKAGESET_DEBIAN+=${KaliCore[@]};;
+      kali-linux-default) PACKAGESET_DEBIAN+=${KaliDefault[@]};;
+      kali-linux-headless) PACKAGESET_DEBIAN+=${KaliHeadless[@]};;
+      kali-linux-large) PACKAGESET_DEBIAN+=${KaliLarge[@]};;
+      kali-tools-802-11) PACKAGESET_DEBIAN+=${KaliToolsWIFI[@]};;
+      kali-tools-bluetooth) PACKAGESET_DEBIAN+=${KaliToolsBluetooth[@]};;
+      kali-tools-crypto-stego) PACKAGESET_DEBIAN+=${KaliToolsCryptoStego[@]};;
+      kali-tools-database) PACKAGESET_DEBIAN+=${KaliToolsDatabase[@]};;
+      kali-tools-exploitation) PACKAGESET_DEBIAN+=${KaliToolsExploitation[@]};;
+      kali-tools-forensics) PACKAGESET_DEBIAN+=${KaliToolsForensics[@]};;
+      kali-tools-fuzzing) PACKAGESET_DEBIAN+=${KaliToolsFuzzing[@]};;
+      kali-tools-gpu) PACKAGESET_DEBIAN+=${KaliToolsGPU[@]};;
+      kali-tools-hardware) PACKAGESET_DEBIAN+=${KaliToolsHardware[@]};;
+      kali-tools-information-gathering) PACKAGESET_DEBIAN+=${KaliToolsInformationGathering[@]};;
+      kali-tools-passwords) PACKAGESET_DEBIAN+=${KaliToolsPasswords[@]};;
+      kali-tools-post-exploitation) PACKAGESET_DEBIAN+=${KaliToolsPostExploitation[@]};;
+      kali-tools-reporting) PACKAGESET_DEBIAN+=${KaliToolsReporting[@]};;
+      kali-tools-reverse-engineering) PACKAGESET_DEBIAN+=${KaliToolsReverseEngineering[@]};;
+      kali-tools-rfid) PACKAGESET_DEBIAN+=${KaliToolsRFID[@]};;
+      kali-tools-sdr) PACKAGESET_DEBIAN+=${KaliToolsSDR[@]};;
+      kali-tools-sniffing-spoofing) PACKAGESET_DEBIAN+=${KaliToolsSniffingSpoofing[@]};;
+      kali-tools-social-engineering) PACKAGESET_DEBIAN+=${KaliToolsSocialEngineering[@]};;
+      kali-tools-top10) PACKAGESET_DEBIAN+=${KaliToolsTop10[@]};;
+      kali-tools-voip) PACKAGESET_DEBIAN+=${KaliToolsVoIP[@]};;
+      kali-tools-vulnerability) PACKAGESET_DEBIAN+=${KaliToolsVulnerability[@]};;
+      kali-tools-web) PACKAGESET_DEBIAN+=${KaliToolsWeb[@]};;
+      kali-tools-windows-resources) PACKAGESET_DEBIAN+=${KaliToolsWindowsResources[@]};;
+      kali-tools-wireless) PACKAGESET_DEBIAN+=${KaliToolsWireless[@]};;
+    esac
+  done
+}
+
+SelectPackage_Debian_KaliSystem() {
+  MenuHeader
+  echo "Select package type to install:"
+  select TOOL in ${KALI_MOD_SYSTEM[@]}; do
+    if [ -z $TOOL ]; then 
+      printf "\n\033[1;31mkalipak: Not a \"${PACKAGE}\" package.\033[0m\n"
+      EndSession && exit 1
+    elif [ $TOOL == "<--back" ]; then
+      clear -x && SelectPackage_Debian; fi
+    for _OOL in ${KALI_MOD_SYSTEM[@]}; do
+      case $_OOL in
+        KaliARM) PACKAGESET_DEBIAN=${KaliARM[@]};;
+        KaliCore) PACKAGESET_DEBIAN=${KaliCore[@]};;
+        KaliDefault) PACKAGESET_DEBIAN=${KaliDefault[@]};;
+        KaliEverything) PACKAGESET_DEBIAN=${KaliEverything[@]};;
+        KaliFirmware) PACKAGESET_DEBIAN=${KaliFirmware[@]};;
+        KaliHeadless) PACKAGESET_DEBIAN=${KaliHeadless[@]};;
+        KaliLabs) PACKAGESET_DEBIAN=${KaliLabs[@]};;
+        KaliLarge) PACKAGESET_DEBIAN=${KaliLarge[@]};;
+        KaliNetHunter) PACKAGESET_DEBIAN=${KaliNetHunter[@]};;
+      esac; done
+    # expand and correct packages then install
+    ResolvePackagesForDebian
+    SelectPackage_Debian_Installer
+  done
+}
+
+SelectPackage_Debian_KaliTools() {
+  MenuHeader
+  echo "Select package type to install:"
+  select TOOL in ${KALI_MOD_TOOLS[@]}; do
+    if [ -z $TOOL ]; then 
+      printf "\n\033[1;31mkalipak: Not a \"${PACKAGE}\" package.\033[0m\n"
+      EndSession && exit 1
+    elif [ $TOOL == "<--back" ]; then
+      clear -x && SelectPackage_Debian; fi
+    for _OOL in ${KALI_MOD_TOOLS[@]}; do
+      case $_OOL in
+        KaliToolsWIFI) PACKAGESET_DEBIAN=${KaliToolsWIFI[@]};;
+        KaliToolsBluetooth) PACKAGESET_DEBIAN=${KaliToolsBluetooth[@]};;
+        KaliToolsCryptoStego) PACKAGESET_DEBIAN=${KaliToolsCryptoStego[@]};;
+        KaliToolsDatabase) PACKAGESET_DEBIAN=${KaliToolsDatabase[@]};;
+        KaliToolsExploitation) PACKAGESET_DEBIAN=${KaliToolsExploitation[@]};;
+        KaliToolsForensics) PACKAGESET_DEBIAN=${KaliToolsForensics[@]};;
+        KaliToolsFuzzing) PACKAGESET_DEBIAN=${KaliToolsFuzzing[@]};;
+        KaliToolsGPU) PACKAGESET_DEBIAN=${KaliToolsGPU[@]};;
+        KaliToolsHardware) PACKAGESET_DEBIAN=${KaliToolsHardware[@]};;
+        KaliToolsInformationGathering) PACKAGESET_DEBIAN=${KaliToolsInformationGathering[@]};;
+        KaliToolsPasswords) PACKAGESET_DEBIAN=${KaliToolsPasswords[@]};;
+        KaliToolsPostExploitation) PACKAGESET_DEBIAN=${KaliToolsPostExploitation[@]};;
+        KaliToolsReporting) PACKAGESET_DEBIAN=${KaliToolsReporting[@]};;
+        KaliToolsReverseEngineering) PACKAGESET_DEBIAN=${KaliToolsReverseEngineering[@]};;
+        KaliToolsRFID) PACKAGESET_DEBIAN=${KaliToolsRFID[@]};;
+        KaliToolsSDR) PACKAGESET_DEBIAN=${KaliToolsSDR[@]};;
+        KaliToolsSniffingSpoofing) PACKAGESET_DEBIAN=${KaliToolsSniffingSpoofing[@]};;
+        KaliToolsSocialEngineering) PACKAGESET_DEBIAN=${KaliToolsSocialEngineering[@]};;
+        KaliToolsTop10) PACKAGESET_DEBIAN=${KaliToolsTop10[@]};;
+        KaliToolsVoIP) PACKAGESET_DEBIAN=${KaliToolsVoIP[@]};;
+        KaliToolsVulnerability) PACKAGESET_DEBIAN=${KaliToolsVulnerability[@]};;
+        KaliToolsWeb) PACKAGESET_DEBIAN=${KaliToolsWeb[@]};;
+        KaliToolsWindowsResources) PACKAGESET_DEBIAN=${KaliToolsWindowsResources[@]};;
+        KaliToolsWireless) PACKAGESET_DEBIAN=${KaliToolsWireless[@]};;
+      esac; done
+    # expand and correct packages then install
+    ResolvePackagesForDebian
+    SelectPackage_Debian_Installer
+  done
+}
+
+SelectPackage_Debian() {
+  MenuHeader
+  echo "Alternative menu for Linux/Debian:"
+  select PACKAGE in ${DEB_PACKAGES[@]}; do
+    case $PACKAGE in
+      KaliSystem) SelectPackage_Debian_KaliSystem;;
+      KaliTools) SelectPackage_Debian_KaliTools;;
+      RemoveSources) RemoveSources && PickPackageDistro;;
+      FixIssues) FixInstallIssues && PickPackageDistro;;
+      Update) UpdatePackageList;;
+      Exit) EndSession && exit 1;;
+      *) printf "\n\033[1;31mkalipak: Not a package.\033[0m\n"
+      EndSession && exit 1
+    esac
+  done
+}
+#--- END LINUX/DEBIAN SELECTION ---#
 
 case "$1" in
   -h | --help) DisplayHelp;;
   -v | --version) DisplayVersion;;
-  -i | --update-pkg) UpdatePackageList;;
-  *) if [ $# -eq 0 ]; then SelectPackage
+  -i | --update-pkg) StartSession && UpdatePackageList;;
+  *) StartSession 
+    if [ $# -eq 0 ]; then PickPackageDistro
     else echo "kalipak: unknown command \"$1\""
       DisplayHelp && exit 1
     fi;;
