@@ -40,6 +40,7 @@ if [ $DISTRO != "Kali" ]; then
   keyrings_dir=/usr/share/keyrings
   sources_dir=/etc/apt/sources.list.d
   kali_sources_list=$sources_dir/kali-rolling.list
+  kali_trusted_keyring=/etc/apt/trusted.gpg.d/kali-archive-keyring.asc
   # if $kali_sources_list does not exist (either by
   # deletion or not added) create the file
   if [ ! -e $kali_sources_list ]; then sudo touch $kali_sources_list ; fi
@@ -58,6 +59,7 @@ if [ $DISTRO != "Kali" ]; then
     # check if wget installed; install if not found
     verf_wget=$(dpkg -s wget | grep -iwoEm 1 "installed|deinstall")  # collect response (if any) and store in verf_wget
      # --- ! this part is unstable and may fail but should work just fine
+    printf "\n> Installing package \"wget\"...\n"
     if [ $verf_wget == "installed" ]; then echo "> package \"wget\" already installed."
     elif [ $verf_wget == "deinstall" ]; then sudo apt install -y wget && echo "> package \"wget\" was installed."; fi 
     # output first line of $kali_sources_list to
@@ -72,9 +74,14 @@ if [ $DISTRO != "Kali" ]; then
       # base64 to binary for non-readable security
       wget -O- https://${mirror}/kali/dists/kali-rolling/Release.gpg | sudo gpg --dearmor -o ${keyrings_dir}/${mirror}-rolling.gpg
       # add GPG key to APT sources list
-      echo "deb [signed-by=${keyrings_dir}/${mirror}-rolling.gpg] http://${mirror}/kali kali-rolling main contrib non-free" | sudo tee -a $kali_sources_list
+      echo "deb [signed-by=${keyrings_dir}/${mirror}-rolling.gpg] https://${mirror}/kali kali-rolling main contrib non-free" | sudo tee -a $kali_sources_list
       echo "> mirror \"${mirror}/kali\" was added."
     done
+    # add kali keyring to ../trusted.gpg.d
+    sudo wget https://archive.kali.org/archive-key.asc -O $kali_trusted_keyring
+    # verify whether or not the keyring was added successfully
+    if [ -f $kali_trusted_keyring ]; then echo "> keyring was added."
+    else echo "> error adding keyring to ../trusted.gpg.d"; fi
   fi; fi
 
 # ------------------------------------------------------------------------ END -------- HERE --------<
@@ -89,6 +96,11 @@ RemoveSources() {
     sudo rm -rf $kali_sources_list
     printf "\n> Kali sources removed from APT.\n"
   else echo "no sources from kalipak"; fi
+  
+  if [ -e $kali_trusted_keyring ]; then 
+    sudo rm -rf $kali_trusted_keyring
+    printf "\n> Kali keyring removed.\n"
+  else echo "no keyring found for Kali"; fi
 }
 #--- END DISTRO INIT ---#
 
