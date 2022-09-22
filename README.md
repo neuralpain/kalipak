@@ -1,53 +1,33 @@
-# KALIPAK: Kali Linux Metapackage Installer CLI
+# KALIPAK: Kali Linux Metapackage CLI
 
-This script was created for ease of installation of Kali Linux metapackages on either your Kali distribution or any other Linux distribution. The conventional way is still an option but I believe that `kalipak` makes this task less tedious. 
+I created this script because I didn't want to install all of Kali but I still wanted access to Kali metapackages on my current Linux distribution. This should work with most Debian-based distributions.
 
 ### What is a Metapackage?
 
 Metapackages are used to install many packages at once, created as a list of dependencies on other packages. Kali Linux uses these in a few ways such as allowing users to decide how many packages out of the total Kali list they would like to install. — *excerpt from [kali.org](https://www.kali.org/docs/general-use/metapackages)*
 
-## Installing `kalipak`
-
-It's recommended that `kalipak` be installed on `PATH` for optimal performance. These instructions will be simmilar for almost any script you want to install on a system.
+## Installing kalipak
 
 ### Linux
 
-1. The first way to install `kalipak` on Linux
+To install kalipak on Linux, run the code below in order.
 
+   ```bash
+   git clone https://github.com/neuralpain/kalipak /tmp/kalipak
+   sudo mv /tmp/kalipak/kalipak /bin
+   chmod +x /bin/kalipak
    ```
-   git clone https://github.com/neuralpain/kalipak Downloads/kalipak
-   sudo mv Downloads/kalipak/kalipak /bin
-   rm -r -f Downloads/kalipak
-   ```
-
-2. The second way to install `kalipak` on Linux
-
-   - Open the `.bashrc` file in your home directiory.
-
-      ```
-      gedit /home/your-user-name/.bashrc  # replace gedit with your preferred editor
-      ```
-   - Add `export PATH=$PATH:kalipak-dir` to the last line of the file, where
-      `kalipak-dir` is the directory you want to add.
-   - Save the `.bashrc` file.
-   - Restart your terminal (optional).
-
-If you encounter this `/bin/kalipak: Permission denied` error or similar
-
-```
-sudo chmod +x /bin/kalipak
-```
 
 ### Mac OS X
 
 1. Open the `.bash_profile` file in your home directory (for example,
    `/Users/your-user-name/.bash_profile`) in a text editor.
 2. Add `export PATH="$PATH:kalipak-dir"` to the last line of the file, where
-   *kalipak-dir* is the directory you want to add.
+   `kalipak-dir` is the directory you want to add.
 3. Save the `.bash_profile` file.
 4. Restart your terminal.
 
-### WSL
+### Windows (for WSL)
 
 The recommended `PATH` directiory for KALIPAK is `C:\Windows\Scripts` or copy to `C:\Windows`.
 
@@ -68,21 +48,22 @@ The recommended `PATH` directiory for KALIPAK is `C:\Windows\Scripts` or copy to
 
 ## How to use
 
-It's always good practice to update the package list before installing or upgrading existing packages because the system cannot know whether the repo has a new version of a package, unless it has an up-to-date copy of the package list.
-
-You can manually update the package list with `kalipak -i`, afterwhich you will be greeted with the metapackage list for installation. Alternatively, you can select "Update" in the menu list.
-
-If you just want to run it and update later, run `kalipak` from the terminal to enter the selection menu for installation.
+After installing kalipak, run `kalipak --init` to prepare for the metapackage installation. Afterwhich, use the menu to select what you need.
 
 ## Usage
 
 ```
-Usage: kalipak [--update-pkg] [--help] [--version]
-
+┌─KALIPAK─┐
+Install Kali metapackages on your Linux distribution.
+    kalipak [OPTION]
 Options:
-  -i, --update-pkg    update package list and upgrade
-  -h, --help          display this help and exit
-  -v, --version       display version and exit
+  --init                  initialize KALIPAK
+  --help                  display this help
+  --version               display version
+  --update                update package list and upgrade with confirmation
+  --debian                simulate KALIPAK on Debian
+  --kali                  simulate KALIPAK on Kali
+  --info [--distro-only]  display information on KALIPAK and your Linux distribution.
 ```
 
 ---
@@ -146,4 +127,4 @@ Options:
 
 ## License
 
-KALIPAK is available under the MIT License. See [LICENSE](./LICENSE) for the full license text.
+**KALIPAK** is available under the MIT License. See [LICENSE](./LICENSE) for the full license text.
