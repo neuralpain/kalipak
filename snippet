@@ -1,0 +1,47 @@
+# --- REF: https://gitlab.com/kalilinux/packages/kali-archive-keyring/-/tree/kali/master/debian ---<
+# output first line of $kali_sources_list to
+# mark kalipak for subsequent verification
+echo "# Kali mirrors added with KALIPAK by $(whoami) [$(date +"%Y-%m-%d %T")]" | sudo tee $kali_sources_list
+if [ ! -e $usr_keyring_dir/kali-archive-keyring.asc ]; then
+  # add kali keyring to ../trusted.gpg.d
+  sudo wget https://archive.kali.org/archive-key.asc -O $usr_keyring_dir/kali-archive-keyring.asc
+  # Install the symlink upon first run
+  sudo ln -sf $usr_keyring_dir/kali-archive-keyring.asc $trusted_keyring_dir/kali-archive-keyring.asc
+  printf "$NOTE Installed kali-archive-keyring as a trusted APT keyring.\n"
+else printf "$NOTE GPG key for already installed.\n" && break; fi
+
+# verify whether or not the keyring was added successfully
+if [ -f $trusted_keyring_dir/kali-archive-keyring.asc ]; then printf "$NOTE No issues with keyring.\n"
+else printf "$ERROR Problem verifying keyring \"$trusted_keyring_dir/kali-archive-keyring.asc\"\n"
+  printf "$WARN No certificates available. Kali mirrors cannot be verified and will NOT be trusted. Update APT, remove sources and run KALIPAK again.\n"
+fi
+
+# cycle through mirror list and add mirrors to APT
+for mirror in ${kali_mirror_list[@]}; do
+  # add GPG key to APT sources list
+  echo "deb [signed-by=$usr_keyring_dir/kali-archive-keyring.asc] https://$mirror/kali kali-rolling main contrib non-free" | sudo tee -a $kali_sources_list
+  printf "$NOTE Mirror \"$mirror/kali\" was added.\n"
+done
+
+
+
+
+
+# get kali archive keys
+# wget -O kali-archive-keyring_2022.1_all.deb http://http.kali.org/kali/pool/main/k/kali-archive-keyring/kali-archive-keyring_2022.1_all.deb
+# sudo dpkg -i kali-archive-keyring_2022.1_all.deb
+# sudo apt update
+
+
+
+# apt policy kali-archive-keyring
+# Installed: 2015.2
+#   Candidate: 2015.2
+#   Version table:
+#      2018.1 1
+#           1 http://http.kali.org/kali kali-rolling/main amd64 Packages
+#           1 http://http.kali.org/kali kali-rolling/main i386 Packages
+#  *** 2015.2 100
+#         100 /var/lib/dpkg/status
+
+# sudo apt install kali-archive-keyring/kali-rolling
