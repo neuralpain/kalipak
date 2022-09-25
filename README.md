@@ -1,147 +1,51 @@
-# KALIPAK: Kali Linux Metapackage Installer CLI
+<p align="center">
+   <img src="https://user-images.githubusercontent.com/77242216/192156018-6c07bf52-5f00-492c-b06c-34c650fcdbdd.svg" height="96" >
+</p>
 
-This script was created for ease of installation of Kali Linux metapackages on either your Kali distribution or any other Linux distribution. The conventional way is still an option but I believe that `kalipak` makes this task less tedious. 
+# KALIPAK: Kali Metapackage CLI
+
+I created this script because I didn't want to install all of Kali but I still wanted access to Kali metapackages on my current Linux distribution. Currently works on Debian for now. Ubuntu has some issues. Please use this script with caution.
+
+> View the [Changelog](CHANGELOG.md) for project history.
 
 ### What is a Metapackage?
 
 Metapackages are used to install many packages at once, created as a list of dependencies on other packages. Kali Linux uses these in a few ways such as allowing users to decide how many packages out of the total Kali list they would like to install. — *excerpt from [kali.org](https://www.kali.org/docs/general-use/metapackages)*
 
-## Installing `kalipak`
+## Install & run
 
-It's recommended that `kalipak` be installed on `PATH` for optimal performance. These instructions will be simmilar for almost any script you want to install on a system.
+To install kalipak on Linux, run the code below in order.
 
-### Linux
-
-1. The first way to install `kalipak` on Linux
-
-   ```
-   git clone https://github.com/neuralpain/kalipak Downloads/kalipak
-   sudo mv Downloads/kalipak/kalipak /usr/local/bin/
-   rm -r -f Downloads/kalipak
+   ```bash
+   git clone https://github.com/neuralpain/kalipak /tmp/kalipak
+   sudo cp -f /tmp/kalipak/kalipak /bin
+   chmod +x /bin/kalipak
    ```
 
-2. The second way to install `kalipak` on Linux
-
-   - Open the `.bashrc` file in your home directiory.
-
-      ```
-      gedit /home/your-user-name/.bashrc  # replace gedit with your preferred editor
-      ```
-   - Add `export PATH=$PATH:kalipak-dir` to the last line of the file, where
-      `kalipak-dir` is the directory you want to add.
-   - Save the `.bashrc` file.
-   - Restart your terminal (optional).
-
-If you encounter this `/usr/bin/kalipak: Permission denied` error or similar, make kalipak an executable.
-
-```
-sudo chmod +x /bin/kalipak
-```
-
-### Mac OS X
-
-1. Open the `.bash_profile` file in your home directory (for example,
-   `/Users/your-user-name/.bash_profile`) in a text editor.
-2. Add `export PATH="$PATH:kalipak-dir"` to the last line of the file, where
-   *kalipak-dir* is the directory you want to add.
-3. Save the `.bash_profile` file.
-4. Restart your terminal.
-
-### Windows
-
-The recommended `PATH` directiory for KALIPAK is `C:\Windows\Scripts` or copy to `C:\Windows`.
-
-1. The first step depends which version of Windows you have installed:
-    - If you're using Windows 8 or 10, press the Windows key, then search for and
-    select "System (Control Panel)".
-    - If you're using Windows 7, right click the "Computer" icon on the desktop
-    and click "Properties".
-2. Click "Advanced system settings".
-3. Click "Environment Variables".
-4. Under "System Variables", find the `PATH` variable, select it, and click
-   "Edit". If there is no `PATH` variable, click "New".
-5. Add your directory to the beginning of the variable value followed by `;` (a
-   semicolon). For example, if the value was `C:\Windows\System32`, change it to
-   `C:\Windows\Scripts;C:\Windows\System32`.
-6. Click "OK".
-7. Restart your terminal.
-
-## How to use
-
-It's always good practice to update the package list before installing or upgrading existing packages because the system cannot know whether the repo has a new version of a package, unless it has an up-to-date copy of the package list.
-
-You can manually update the package list with `kalipak -i`, afterwhich you will be greeted with the metapackage list for installation. Alternatively, you can select "Update" in the menu list.
-
-If you just want to run it and update later, run `kalipak` from the terminal to enter the selection menu for installation.
+After installing kalipak, run `kalipak --init` to prepare prepare your system for working with Kali metapackages. Afterwhich, use the menu to select what you need. However, if running on Kali Linux, do not use `--init`, just run `kalipak`.
 
 ## Usage
 
 ```
-Usage: kalipak [--update-pkg] [--help] [--version]
+┌─KALIPAK─┐
+Install Kali metapackages on your Linux distribution.
 
-Options:
-  -i, --update-pkg    update package list and upgrade
-  -h, --help          display this help and exit
-  -v, --version       display version and exit
+    kalipak [OPTION]
+
+OPTIONS
+  --init        This command will prepare your system for
+                use with KALIPAK by installing required packages
+                and keys for Kali certificate verification
+                and should be run the first time you use KALIPAK.
+
+  --reset        Same as '--init' but invokes '--purge' beforehand.
+  --update       Update package list and upgrade with confirmation.
+  --purge        Remove sources added by KALIPAK.
+  --info         Display information aout your Linux distribution.
+  --version      Display version info and exit.
+  --help         Display this help and exit.
 ```
-
-## Metapackage List [(kali.org)](https://www.kali.org/docs/general-use/metapackages)
-
-### Kali System
-
-- `kali-linux-core` - Base Kali Linux System – core items that are always included
-- `kali-linux-headless` - Default install that doesn’t require GUI
-- `kali-linux-default` - “Default” desktop (amd64/i386) images include these tools
-- `kali-linux-arm` - All tools suitable for ARM devices
-- `kali-linux-nethunter` - Tools used as part of Kali NetHunter
-
-### Desktop environments/Window managers
-
-- `kali-desktop-core` - Any key tools required for a GUI image
-- `kali-desktop-e17` - Enlightenment (WM)
-- `kali-desktop-gnome` - GNOME (DE)
-- `kali-desktop-i3` - i3 (WM)
-- `kali-desktop-kde` - KDE (DE)
-- `kali-desktop-lxde` - LXDE (WM)
-- `kali-desktop-mate` - MATE (DE)
-- `kali-desktop-xfce` - Xfce (WM)
-
-### Special Tools
-
-- `kali-tools-gpu` - Tools which benefit from having access to GPU hardware
-- `kali-tools-hardware` - Hardware hacking tools
-- `kali-tools-crypto-stego` - Tools based around Cryptography & Steganography
-- `kali-tools-fuzzing` - For fuzzing protocols
-- `kali-tools-802-11` - 802.11 (Commonly known as “Wi-Fi”)
-- `kali-tools-bluetooth` - For targeting Bluetooth devices
-- `kali-tools-rfid` - Radio-Frequency IDentification tools
-- `kali-tools-sdr` - Software-Defined Radio tools
-- `kali-tools-voip` - Voice over IP tools
-- `kali-tools-windows-resources` - Any resources which can be executed on a Windows hosts
-- `kali-linux-labs` - Environments for learning and practising on
-
-### Menu (Attacks, Exploits & Analysis)
-
-- `kali-tools-information-gathering` - Used for Open Source Intelligence (OSINT) & information gathering
-- `kali-tools-vulnerability` - Vulnerability assessments tools
-- `kali-tools-web` - Designed doing web applications attacks
-- `kali-tools-database` - Based around any database attacks
-- `kali-tools-passwords` - Helpful for password cracking attacks – Online & offline
-- `kali-tools-wireless` - All tools based around Wireless protocols – 802.11, Bluetooth, RFID & SDR
-- `kali-tools-reverse-engineering` - For reverse engineering binaries
-- `kali-tools-exploitation` - Commonly used for doing exploitation
-- `kali-tools-social-engineering` - Aimed for doing social engineering techniques
-- `kali-tools-sniffing-spoofing` - Any tools meant for sniffing & spoofing
-- `kali-tools-post-exploitation` - Techniques for post exploitation stage
-- `kali-tools-forensics` - Forensic tools – Live & Offline
-- `kali-tools-reporting` - Reporting tools
-
-### Extras
-
-- `kali-linux-large` - Our previous default tools for amd64/i386 images
-- `kali-linux-everything` - Every metapackage and tool listed here
-- `kali-desktop-live` - Used during a live session when booted from the image
 
 ## License
 
-KALIPAK is available under the MIT License. See [LICENSE](./LICENSE) for the full license text.
+**KALIPAK** is available under the MIT License. See [LICENSE](LICENSE) for the full license text.
