@@ -1,84 +1,322 @@
 #!/bin/bash
 
-# KALIPAK: Kali Linux Metapackage Installer CLI
+# KALIPAK: Kali Metapackage CLI
 # Copyright (c) 2022 neuralpain <https://github.com/neuralpain>
+# Licensed under MIT <https://github.com/neuralpain/kalipak/LICENSE>
 
-PACKAGES=('System' 'Desktop' 'Hardware' 'Exploit' 'Extra' 'Update' 'Exit')
-SYSTEM=('<--back' 'kali-linux-core' 'kali-linux-headless' 'kali-linux-default' 'kali-linux-arm' 'kali-linux-nethunter')
-DESKTOP=('<--back' 'kali-desktop-core' 'kali-desktop-e17' 'kali-desktop-gnome' 'kali-desktop-i3' 'kali-desktop-kde' 'kali-desktop-lxde' 'kali-desktop-mate' 'kali-desktop-xfce')
-HARDWARE=('<--back' 'kali-tools-gpu' 'kali-tools-hardware' 'kali-tools-crypto-stego' 'kali-tools-fuzzing' 'kali-tools-802-11' 'kali-tools-bluetooth' 'kali-tools-rfid' 'kali-tools-sdr' 'kali-tools-voip' 'kali-tools-windows-resources' 'kali-linux-labs')
-EXPLOIT=('<--back' 'kali-tools-information-gathering' 'kali-tools-vulnerability' 'kali-tools-web' 'kali-tools-database' 'kali-tools-passwords' 'kali-tools-wireless' 'kali-tools-reverse-engineering' 'kali-tools-exploitation' 'kali-tools-social-engineering' 'kali-tools-sniffing-spoofing' 'kali-tools-post-exploitation' 'kali-tools-forensics' 'kali-tools-reporting')
-EXTRA=('<--back' 'kali-linux-large' 'kali-linux-everything' 'kali-desktop-live')
+# --- VARIABLES --- #
+PS3="└─ "
+# --- colors
+BROWN='\033[0;33m'
+WHITE='\033[1;37m'
+YELLOW='\033[1;33m'
+LIGHT_BLUE='\033[1;34m'
+LIGHT_RED='\033[1;31m'
+LIGHT_GREEN='\033[1;32m'
+RECOLOR='\033[0m'
+# --- message decoration
+ERROR="${LIGHT_RED}E:${RECOLOR}"
+WARN="${YELLOW}W:${RECOLOR}"
+NOTE="${BROWN}N:${RECOLOR}"
+INFO="${LIGHT_BLUE}(i)${RECOLOR}"
+INFO_QUE="${LIGHT_BLUE}(?)${RECOLOR}"
+INFO_POS="${LIGHT_GREEN}>${RECOLOR}"
+INFO2="${LIGHT_BLUE}<^>${RECOLOR}"
+# --- directories
+usr_keyring_dir=/usr/share/keyrings
+sources_dir=/etc/apt/sources.list.d
+kali_sources_list=$sources_dir/kali-rolling.list
+trusted_keyring_dir=/etc/apt/trusted.gpg.d
+# --- END VARIABLES --- #
 
-DisplayVersion() { echo "kalipak v1.2.1" && exit 1; }
+function DisplayVersion() { echo "kalipak v1.3.1" && exit 0; }
 
-DisplayHelp() {
-  echo
-  echo "Usage: kalipak [--update-pkg] [--help] [--version]"
-  echo
-  echo "Options:"
-  echo "  -i, --update-pkg    update package list and upgrade"
-  echo "  -h, --help          display this help and exit"
-  echo "  -v, --version       display version and exit"
-  exit 1
+# --- DISTRO INIT --- #
+function GetLinuxDistributionName() {
+  DISTRO=
+  if [ -e /etc/lsb-release ]; then DISTRO_REL=$(sudo cat /etc/lsb-release)
+  elif [ -e /etc/lsb_release ]; then DISTRO_REL=$(sudo cat /etc/lsb_release)
+  else DISTRO_REL=$(sudo cat /etc/os-release); fi
+  DISTRO_VER=$(sudo cat /etc/debian_version)
+  # currently, every distro that is not Kali will be
+  # recognized as just Debian or another Linux distro
+  DISTRO_LIST=('kali' 'debian' 'ubuntu' 'arch')
+
+  for dist in ${DISTRO_LIST[@]}; do
+    DISTRO=$(sudo cat /etc/*release | grep -iwom 1 $dist)
+    if [ -z $DISTRO ]; then DISTRO="Linux" # label as linux if empty
+    # normalize distro name with capital letter
+    # as to why i didn't capitalize in the array declaration...idk...aesthetic i guess
+    else DISTRO=${DISTRO^} && break; fi 
+  done
 }
 
-UpdatePackageList() {
-  printf "\nkalipak: Updating package list...\n\n"
-  sudo apt update
-  printf "\nkalipak: Upgrade packages? [Y/n] "; read query
-  if [ $query == "Y" ] || [ $query == "y" ]; then
-    printf "\nkalipak: Upgrading packages...\n\n"
-    sudo apt upgrade
-  else printf "\nkalipak: Upgrade suspended.\n"; fi
-  SelectPackage
+function DisplayLinuxDistroInformation() {
+  printf "\n${WHITE}┌─────────────────┐\nDistro Release Info\n└─────────────────┘${RECOLOR}\n$DISTRO_REL\n"
+  printf "\n${WHITE}Distro Version${RECOLOR}\n└─$DISTRO_VER\n\n"
 }
 
-SelectTool() {
-  printf "\n\033[1;37mKALIPAK:\033[0m Kali Linux Metapackage Installer\n\033[1;33mhttps://www.kali.org/docs/general-use/metapackages\033[0m\n"
-  echo "-----------------------"
+function InstallRequiredPackages() {
+  # --- NOTE: gpg installation will clear-x at some point and delete log
+  sys_package_list=('wget' 'gpg') # list of packages required for KALIPAK to function
+  for package in ${sys_package_list[@]}; do
+    # check if $package installed; install if not found collect response (if any) and store in verf_package
+    verf_package=$(dpkg -s $package | grep -iwoEm 1 "installed|is not installed|deinstall")
+    # --- ! this part below is unstable and may fail but should work just fine
+    # if dpkg did not give a response (!), the package is not installed and will proceed with installation
+    # the rest is straightforward
+    if [ ! $verf_package ] || [ $verf_package == "is not installed" ] || [ $verf_package == "deinstall" ]; then
+      printf "$NOTE Installing package \"$package\"...\n"
+      sudo apt-get install -y $package
+      printf "$NOTE Package \"$package\" installation completed.\n"
+    elif [ $verf_package == "installed" ]; then printf "$NOTE Package \"$package\" already installed.\n"
+    else printf "$WARN Something went wrong.\n"; fi
+  done && sudo apt-get clean # clean the apt cache
+}
+
+function AddMirrorsToAPT() {
+  # kali mirrors to add in APT sources
+  # additional mirrors can be added manually
+  kali_mirror_list=(
+    # 'http.kali.org' # server redirect to kali.download
+    'kali.download'
+  )
+
+  # output first line of $kali_sources_list to mark kalipak for subsequent verification
+  echo "# Kali mirrors added with KALIPAK by $(whoami) [$(date +"%Y-%m-%d %T")]" | sudo tee $kali_sources_list
+  
+  # cycle through mirror list and add mirrors to APT
+  for mirror in ${kali_mirror_list[@]}; do
+    # add GPG key to APT sources list
+    echo "deb [signed-by=$usr_keyring_dir/kali-archive-keyring.asc] https://$mirror/kali kali-rolling main contrib non-free" | sudo tee -a $kali_sources_list
+    printf "$NOTE Mirror \"$mirror/kali\" was added.\n"
+  done
+}
+
+function InstallKaliKeyring() {
+  # create keyring directory if it does not exist
+  if [ ! -d $usr_keyring_dir ]; then
+    sudo mkdir $usr_keyring_dir
+    printf "\n$NOTE Keyring directory created."
+  fi
+
+  # --- REF: https://gitlab.com/kalilinux/packages/kali-archive-keyring/-/tree/kali/master/debian ---<
+  if [ ! -e $usr_keyring_dir/kali-archive-keyring.asc ]; then
+    # add kali keyring to ../trusted.gpg.d
+    sudo wget https://archive.kali.org/archive-key.asc -O $usr_keyring_dir/kali-archive-keyring.asc
+    # install the symlink upon first run
+    sudo ln -sf $usr_keyring_dir/kali-archive-keyring.asc $trusted_keyring_dir/kali-archive-keyring.asc
+    printf "$NOTE Installed kali-archive-keyring as a trusted APT keyring.\n"
+  else printf "$NOTE GPG key for already installed.\n" && break; fi
+  
+  # verify whether or not the keyring was added successfully
+  if [ -f $trusted_keyring_dir/kali-archive-keyring.asc ]; then printf "$NOTE Keyring was installed correctly.\n"
+  else printf "$ERROR Problem verifying keyring \"$trusted_keyring_dir/kali-archive-keyring.asc\"\n"
+    printf "$WARN No certificates available. Kali mirrors cannot be verified and will NOT be trusted. Remove sources and run 'kalipak --init'.\n"
+  fi
+}
+
+function RemoveSources() {
+  if [ -e $kali_sources_list ]; then
+    sudo rm -f $kali_sources_list
+    printf "\n$WARN Kali sources removed from APT."
+  else printf "\n$NOTE No sources from KALIPAK."; fi
+
+  if [ -e $usr_keyring_dir/kali-archive-keyring.asc ]; then 
+    sudo rm -f $usr_keyring_dir/kali-archive-keyring.asc
+    printf "\n$WARN Kali keyring uninstalled."
+  else printf "\n$NOTE No keyring found for Kali."; fi && echo
+}
+
+function KALIPAK_Init() {
+  printf "\n$INFO Initializing KALIPAK\n\n"
+  
+  # update packages before installation
+  sudo apt-get update
+
+  # do not check kali distributions
+  if [ $DISTRO != "Kali" ]; then
+    # --- verify kali sources
+    # if $kali_sources_list does not exist (either by
+    # deletion or not added) create the file
+    if [ ! -e $kali_sources_list ]; then 
+      sudo touch $kali_sources_list
+      printf "$NOTE Kali source list created.\n"
+    fi
+    
+    # --- verify whether or not that the source
+    # was added in another instance of KALIPAK
+    # and add the sources if not present
+    verf_source_list=$(sudo cat $kali_sources_list | grep -iwom 1 kalipak)
+    if [ -z ${verf_source_list} ]; then
+      InstallRequiredPackages # wget, gpg
+      InstallKaliKeyring # kali-archive-keyring.asc
+      AddMirrorsToAPT
+      # update packages after installation
+      sudo apt-get update
+      printf "$NOTE Package list has been updated.\n"
+    fi; fi; printf "\n$INFO Initialization complete. Starting KALIPAK...\n"
+  
+  GetLinuxDistributionName
+  StartSession && SelectMetapackage
+}
+# --- END DISTRO INIT --- #
+
+# --- SESSION DURATION --- #
+function StartSession() {
+  printf "\n$INFO New session satrted on $DISTRO/$(whoami) [$(date +"%Y-%m-%d %T")]\n"
+}
+
+function EndSession() {
+  if (( $SECONDS > 3600 )); then
+    let "hours=SECONDS/3600"
+    let "minutes=(SECONDS%3600)/60"
+    let "seconds=(SECONDS%3600)%60"
+    printf "\n$INFO Session terminated in $hours hour(s), $minutes minute(s) and $seconds second(s)" 
+    printf "\n$INFO Session ended on $DISTRO/$(whoami) [$(date +"%Y-%m-%d %T")]\n"
+  elif (( $SECONDS > 60 )); then
+    let "minutes=(SECONDS%3600)/60"
+    let "seconds=(SECONDS%3600)%60"
+    printf "\n$INFO Session terminated in $minutes minute(s) and $seconds second(s)"
+    printf "\n$INFO Session ended on $DISTRO/$(whoami) [$(date +"%Y-%m-%d %T")]\n"
+  else
+    printf "\n$INFO Session terminated in $SECONDS seconds"
+    printf "\n$INFO Session ended on $DISTRO/$(whoami) [$(date +"%Y-%m-%d %T")]\n"
+  fi
+}
+# --- END SESSION DURATON --- #
+
+# --- PACKAGE LISTS --- #
+MAIN_MENU=('System' 'Desktop' 'Hardware' 'Exploit' 'Other' 'Options' 'Exit')
+OPTIONS_MENU=('←-Back' 'RemoveSources' 'FixIssues' 'Update' 'Exit')
+# tool packages
+KALI_SYSTEM=('←-Back' 'kali-linux-core' 'kali-linux-headless' 'kali-linux-default' 'kali-linux-arm' 'kali-linux-nethunter')
+KALI_DESKTOP=('←-Back' 'kali-desktop-core' 'kali-desktop-e17' 'kali-desktop-gnome' 'kali-desktop-i3' 'kali-desktop-kde' 'kali-desktop-lxde' 'kali-desktop-mate' 'kali-desktop-xfce')
+KALI_HARDWARE=('←-Back' 'kali-tools-gpu' 'kali-tools-hardware' 'kali-tools-crypto-stego' 'kali-tools-fuzzing' 'kali-tools-802-11' 'kali-tools-bluetooth' 'kali-tools-rfid' 'kali-tools-sdr' 'kali-tools-voip' 'kali-tools-windows-resources' 'kali-linux-labs')
+KALI_EXPLOIT=('←-Back' 'kali-tools-information-gathering' 'kali-tools-vulnerability' 'kali-tools-web' 'kali-tools-database' 'kali-tools-passwords' 'kali-tools-wireless' 'kali-tools-reverse-engineering' 'kali-tools-exploitation' 'kali-tools-social-engineering' 'kali-tools-sniffing-spoofing' 'kali-tools-post-exploitation' 'kali-tools-forensics' 'kali-tools-reporting')
+KALI_OTHER=('←-Back' 'kali-linux-large' 'kali-linux-everything' 'kali-desktop-live')
+# --- END PACKAGE LISTS --- #
+
+function DisplayMenuHeader() {
+  echo; echo "┌─────┐"
+  printf "${WHITE}KALIPAK: Kali Metapackage CLI${RECOLOR}"
+  printf "\n${YELLOW}https://github.com/neuralpain/kalipak${RECOLOR}"
+  printf "\n${YELLOW}https://www.kali.org/tools/kali-meta${RECOLOR}\n"
+  echo "┌──────────────────────┘"
+}
+
+function UpdatePackageList() {
+  printf "\nUpdating package list...\n"; sudo apt update
+  # printf "\n$NOTE If upgrade size is larger than 100M, please reschedule.\n"
+  printf "\n$INFO_QUE Upgrade packages? [Y/n] "; read query
+  if [ ! $query ]; then printf "\n$NOTE Upgrade suspended.\n" && SelectMetapackage; fi
+  if [ $query == "Y" ] || [ $query == "y" ]; then printf "\nUpgrading packages...\n" && sudo apt upgrade -y
+  elif [ $query == "N" ] || [ $query == "n" ]; then printf "\n$NOTE Upgrade suspended.\n"
+  else printf "\n$ERROR Invalid response.\n$NOTE Upgrade suspended.\n"; fi
+  SelectMetapackage
+}
+
+function FixInstallIssues() { 
+  printf "\nAttempting to fix issues...\n"
+  # sudo apt autoremove
+  sudo apt --fix-broken install
+}
+
+function RunInstallationForDebian() {
+  printf "\nInstalling packages...\n"
+  sudo apt install ${DEPACKAGESET[@]}
+  printf "\n$INFO_POS Installation completed.\n"
+  SelectMetapackage
+}
+
+function ExtendedOptions() {
+  clear -x && DisplayMenuHeader
+  echo "Extended menu:"
+  select PACKAGE in ${OPTIONS_MENU[@]}; do
+    case $PACKAGE in
+      ←back) clear -x && SelectMetapackage;;
+      RemoveSources) RemoveSources && SelectMetapackage;;
+      FixIssues) FixInstallIssues && SelectMetapackage;;
+      Update) UpdatePackageList && SelectMetapackage;;
+      Exit) EndSession && exit 0;;
+      *) printf "\n$ERROR Not an option.\n"
+      EndSession && exit 1
+    esac
+  done
+}
+
+# --- METAPACKAGE INSTALL --- #
+function InstallMetapackage() {
+  clear -x && DisplayMenuHeader
   printf "Select ${PACKAGE} package:\n"
   select TOOL in ${PACKAGESET[@]}; do
     if [ -z $TOOL ]; then 
-      printf "\n\033[1;31mkalipak: Not a \"${PACKAGE}\" package.\033[0m\n"
-      printf "\nkalipak: Exiting...\n" && exit 1
-    elif [ $TOOL == "<--back" ]; then
-      clear -x && SelectPackage; fi
+      printf "\n$ERROR Not a \"${PACKAGE}\" package.\n"
+      EndSession && exit 1
+    elif [ $TOOL == "←-Back" ]; then
+      clear -x && SelectMetapackage; fi
     for _OOL in ${PACKAGESET[@]}; do
       if [ $_OOL == $TOOL ]; then
-        printf "\nkalipak: Installing $TOOL...\n\n"
-        sudo apt-get install $TOOL
-        printf "\n\033[1;32m> $TOOL installation completed.\033[0m\n"
-        SelectPackage; fi
+        printf "\n$INFO Installing $TOOL...\n"
+        sudo apt install $TOOL
+        printf "\n$INFO_POS $TOOL installation completed.\n"
+        SelectMetapackage; fi
     done
   done
 }
 
-SelectPackage() {
-  printf "\n\033[1;37mKALIPAK:\033[0m Kali Linux Metapackage Installer\n\033[1;33mhttps://www.kali.org/docs/general-use/metapackages\033[0m\n"
-  echo "-------------------------------"
-  echo "Select package type to install:"
-  select PACKAGE in ${PACKAGES[@]}; do
+function SelectMetapackage() {
+  DisplayMenuHeader
+  echo "Main Menu:"
+  select PACKAGE in ${MAIN_MENU[@]}; do
     case $PACKAGE in
-      System) PACKAGESET=${SYSTEM[@]};;
-      Desktop) PACKAGESET=${DESKTOP[@]};;
-      Hardware) PACKAGESET=${HARDWARE[@]};;
-      Exploit) PACKAGESET=${EXPLOIT[@]};;
-      Extra) PACKAGESET=${EXTRA[@]};;
-      Update) UpdatePackageList;;
-      Exit) printf "\nkalipak: Exiting...\n" && exit 1;;
-      *) printf "\n\033[1;31mkalipak: Not a package.\033[0m\n"
-      printf "\nkalipak: Exiting...\n" && exit 1
-    esac; clear -x && SelectTool
+      System) PACKAGESET=${KALI_SYSTEM[@]};;
+      Desktop) PACKAGESET=${KALI_DESKTOP[@]};;
+      Hardware) PACKAGESET=${KALI_HARDWARE[@]};;
+      Exploit) PACKAGESET=${KALI_EXPLOIT[@]};;
+      Other) PACKAGESET=${KALI_OTHER[@]};;
+      Options) ExtendedOptions;;
+      Exit) EndSession && exit 0;;
+      *) printf "\n$ERROR Not an option.\n"
+      EndSession && exit 1
+    esac; InstallMetapackage
   done
 }
+# --- END METAPACKAGE INSTALL --- #
+
+
+function DisplayHelp() {
+  printf "\n┌─${WHITE}KALIPAK${RECOLOR}─┐\n"
+  printf "Install Kali metapackages on your Linux distribution\n"
+  printf "\n    kalipak [OPTION]\n"
+  printf "\n${WHITE}OPTIONS${RECOLOR}\n"
+  printf "  --init \t This command will prepare your system for"
+  printf "\n\t\t use with KALIPAK by installing required packages"
+  printf "\n\t\t and keys for Kali certificate verification"
+  printf "\n\t\t and should be run the first time you use KALIPAK.\n\n"
+  printf "  --reset \t Same as '--init' but invokes '--purge' beforehand.\n"
+  printf "  --update \t Update package list and upgrade with confirmation.\n"
+  printf "  --purge \t Remove sources added by KALIPAK.\n"
+  printf "  --info \t Display information aout your Linux distribution.\n"
+  printf "  --version \t Display version info and exit.\n"
+  printf "  --help \t Display this help and exit.\n"
+  echo && exit 0
+}
+
+# -------------------------------------------------------------------------------- SCRIPT -------- STATRT --------<
+
+GetLinuxDistributionName
 
 case "$1" in
-  -h | --help) DisplayHelp;;
-  -v | --version) DisplayVersion;;
-  -i | --update-pkg) UpdatePackageList;;
-  *) if [ $# -eq 0 ]; then SelectPackage
-    else echo "kalipak: unknown command \"$1\""
-      DisplayHelp && exit 1
+  --init) KALIPAK_Init;;
+  --reset) RemoveSources && KALIPAK_Init;;
+  --update) StartSession && UpdatePackageList;;
+  --purge) RemoveSources && exit;;
+  --info) DisplayLinuxDistroInformation;;
+  --version) DisplayVersion;;
+  --help) DisplayHelp;;
+  *) if [ $# -eq 0 ]; then StartSession && SelectMetapackage``
+    else echo "kalipak: invalid option '$1'"
+      echo "Try 'kalipak --help' for more information."; exit 1
     fi;;
 esac
