@@ -22,7 +22,7 @@ To install kalipak on Linux, run the code below in order.
    chmod +x /bin/kalipak
    ```
 
-Or download and run the [installer script](install-kalipak.sh).
+Or download and run the [installer script](kalipak-install.sh).
    
    ```bash
    sudo kalipak-install.sh
