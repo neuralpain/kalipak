@@ -14,19 +14,25 @@ Metapackages are used to install many packages at once, created as a list of dep
 
 ## Install & run
 
-To install kalipak on Linux, run the code below in order.
+To install kalipak on Linux, run the code below.
 
+1. Using `git`:
    ```bash
    git clone https://github.com/neuralpain/kalipak /tmp/kalipak
-   sudo cp -f /tmp/kalipak/kalipak /bin
+   cp -f /tmp/kalipak/kalipak /bin
    chmod +x /bin/kalipak
    ```
-
-Or download and run the [installer script](kalipak-install.sh).
-   
+2. Using `wget`:
    ```bash
-   sudo kalipak-install.sh
+   # install to /bin directory
+   wget -O kalipak https://gg.gg/kalipak && chmod +x kalipak && mv -f kalipak /bin
    ```
+   ```bash
+   # or download and run
+   wget -O kalipak https://gg.gg/kalipak && chmod +x kalipak && kalipak
+   ```
+
+3. Or for a portable installer, download and run the [kalipak-install](kalipak-install) script (`wget` is required).
 
 After installing kalipak, run `kalipak --init` to prepare prepare your system for working with Kali metapackages; then use the menu to select what you need. `--init` will be ignored on Kali Linux regardless so just run `kalipak` on Kali.
 
