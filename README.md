@@ -25,11 +25,11 @@ To install kalipak on Linux, run the code below.
 2. Using `wget`:
    ```bash
    # install to /bin directory
-   wget -O kalipak https://gg.gg/kalipak && chmod +x kalipak && mv -f kalipak /bin
+   wget -O kalipak https://gg.gg/kalipak && chmod +x ./kalipak && mv -f ./kalipak /bin
    ```
    ```bash
    # or download and run
-   wget -O kalipak https://gg.gg/kalipak && chmod +x kalipak && kalipak
+   wget -O kalipak https://gg.gg/kalipak && chmod +x ./kalipak && ./kalipak
    ```
 
 3. Or for a portable installer, download and run the [kalipak-install](kalipak-install) script (`wget` is required).

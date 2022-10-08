@@ -1,6 +1,6 @@
 #!/bin/sh
 wget -O kalipak https://gg.gg/kalipak
-chmod +x kalipak
-mv -f kalipak /bin
+chmod +x ./kalipak
+mv -f ./kalipak /bin
 
 echo "\033[1;37m$(kalipak --version)\033[0m installed.\n"
