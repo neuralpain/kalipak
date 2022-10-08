@@ -22,7 +22,13 @@ To install kalipak on Linux, run the code below in order.
    chmod +x /bin/kalipak
    ```
 
-After installing kalipak, run `kalipak --init` to prepare prepare your system for working with Kali metapackages. Afterwhich, use the menu to select what you need. However, if running on Kali Linux, do not use `--init`, just run `kalipak`.
+Or download and run the [installer script](install-kalipak.sh).
+   
+   ```bash
+   sudo kalipak-install.sh
+   ```
+
+After installing kalipak, run `kalipak --init` to prepare prepare your system for working with Kali metapackages; then use the menu to select what you need. `--init` will be ignored on Kali Linux regardless so just run `kalipak` on Kali.
 
 ## Usage
 
@@ -38,12 +44,12 @@ OPTIONS
                 and keys for Kali certificate verification
                 and should be run the first time you use KALIPAK.
 
-  --reset        Same as '--init' but invokes '--purge' beforehand.
-  --update       Update package list and upgrade with confirmation.
-  --purge        Remove sources added by KALIPAK.
-  --info         Display information aout your Linux distribution.
-  --version      Display version info and exit.
-  --help         Display this help and exit.
+  --reset       Same as '--init' but invokes '--purge' beforehand.
+  --update      Update package list and upgrade with confirmation.
+  --purge       Remove sources added by KALIPAK.
+  --info        Display information aout your Linux distribution.
+  --version     Display version info and exit.
+  --help        Display this help and exit.
 ```
 
 ## License
