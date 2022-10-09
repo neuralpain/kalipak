@@ -1,5 +1,5 @@
 <p align="center">
-   <img src="https://user-images.githubusercontent.com/77242216/192156018-6c07bf52-5f00-492c-b06c-34c650fcdbdd.svg" height="96" >
+   <img src="https://user-images.githubusercontent.com/77242216/194732352-1ea0ea50-a2c3-4aec-88d2-70d13bed3ca6.svg" height="96" >
 </p>
 
 # KALIPAK: Kali Metapackage CLI
@@ -25,11 +25,11 @@ To install kalipak on Linux, run the code below.
 2. Using `wget`:
    ```bash
    # install to /bin directory
-   wget -O kalipak https://gg.gg/kalipak && chmod +x ./kalipak && mv -f ./kalipak /bin
+   wget -O kalipak https://gg.gg/kalipak && chmod +x ./kalipak && sudo mv -f ./kalipak /bin
    ```
    ```bash
    # or download and run
-   wget -O kalipak https://gg.gg/kalipak && chmod +x ./kalipak && ./kalipak
+   wget -O kalipak https://gg.gg/kalipak && chmod +x ./kalipak && ./kalipak --init
    ```
 
 3. Or for a portable installer, download and run the [kalipak-install](kalipak-install) script (`wget` is required).
