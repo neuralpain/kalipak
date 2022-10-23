@@ -32,7 +32,7 @@ trusted_keyring_dir=/etc/apt/trusted.gpg.d
 function DisplayVersion() { echo "kalipak v1.3.1" && exit 0; }
 
 # --- DISTRO INIT --- #
-function GetLinuxDistributionName() {
+function ConfigureKalipakForDistro() {
   DISTRO=
   if [ -e /etc/lsb-release ]; then DISTRO_REL=$(sudo cat /etc/lsb-release)
   elif [ -e /etc/lsb_release ]; then DISTRO_REL=$(sudo cat /etc/lsb_release)
@@ -131,6 +131,8 @@ function RemoveSources() {
 function KALIPAK_Init() {
   printf "\n$INFO Initializing KALIPAK\n\n"
   
+  ConfigureKalipakForDistro
+  
   # update packages before installation
   sudo apt-get update
 
@@ -157,7 +159,6 @@ function KALIPAK_Init() {
       printf "$NOTE Package list has been updated.\n"
     fi; fi; printf "\n$INFO Initialization complete. Starting KALIPAK...\n"
   
-  GetLinuxDistributionName
   StartSession && SelectMetapackage
 }
 # --- END DISTRO INIT --- #
@@ -305,7 +306,7 @@ function DisplayHelp() {
 
 # -------------------------------------------------------------------------------- SCRIPT -------- STATRT --------<
 
-GetLinuxDistributionName
+ConfigureKalipakForDistro
 
 case "$1" in
   --init) KALIPAK_Init;;
