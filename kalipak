@@ -88,7 +88,7 @@ function AddMirrorsToAPT() {
   # cycle through mirror list and add mirrors to APT
   for mirror in ${kali_mirror_list[@]}; do
     # add GPG key to APT sources list
-    echo "deb [signed-by=$usr_keyring_dir/kali-archive-keyring.asc] https://$mirror/kali kali-rolling main contrib non-free" | sudo tee -a $kali_sources_list
+    echo "deb [signed-by=$usr_keyring_dir/kali-archive-keyring.asc] http://$mirror/kali kali-rolling main contrib non-free" | sudo tee -a $kali_sources_list
     printf "$NOTE Mirror \"$mirror/kali\" was added.\n"
   done
 }
@@ -221,6 +221,7 @@ function FixInstallIssues() {
   printf "\nAttempting to fix issues...\n"
   # sudo apt autoremove
   sudo apt --fix-broken install
+  sudo apt-get --fix-missing
 }
 
 function RunInstallationForDebian() {
